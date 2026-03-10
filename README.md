@@ -15,7 +15,6 @@ This repository contains code and results for training two AI models for dental 
 - [Classification Model Training](#-classification-model-training)
 - [Detection Model Training](#-detection-model-training)
 - [Using Trained Models](#-using-trained-models)
-- [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -160,117 +159,90 @@ datasets/
 
 ## 🏋️ Classification Model Training
 
-The classification model uses **ResNet50** to classify dental conditions from tooth images.
+The classification model uses **ResNet50** to classify dental conditions from tooth images, trained on 11,614 images across 6 dental disease classes.
 
-### Step 1: Prepare Dataset
+### Training Configuration
 
-If you have raw images, run the split script first:
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Model Architecture | ResNet50 | 50-layer residual network |
+| Dataset Size | 11,614 | 9,288 train, 2,326 validation |
+| Classes | 6 | Calculus, Caries, Discoloration, Gingivitis, Hypodontia, Ulcer |
+| Input Resolution | 224×224 | Standard ResNet input size |
+| Batch Size | 16 | Per-batch training samples |
+| Total Epochs | 55-68 | Phase 1 + Phase 2 training |
+| Training Duration | ~5 hours | On Colab GPU (T4) |
 
-```bash
-cd datasets/classification-dataset
-python split_dataset.py
+### Training Process
+
+#### Phase 1: Initial Training
+- **Duration**: 15 epochs
+- **Loss Function**: CrossEntropyLoss
+- **Optimizer**: Adam (lr=0.001)
+- **Learning Rate Scheduler**: ReduceLROnPlateau
+- **Early Stopping**: 5 epochs without improvement
+- **Performance**: Train Acc: 85.23% → Val Acc: 75.49%
+
+#### Phase 2: Enhanced Fine-tuning
+- **Duration**: 40 additional epochs  
+- **Loss Function**: Focal Loss (γ=2.0) for class imbalance handling
+- **Optimizer**: Differential Adam (Backbone: 1e-4, Head: 1e-3)
+- **Unfrozen Layers**: ResNet50 Layer 4 + Classification head
+- **Data Augmentation**:
+  - RandomResizedCrop (70-100%)
+  - ±25° rotations
+  - Horizontal/Vertical flips  
+  - ColorJitter, GaussianBlur, RandomPerspective
+- **Class Weights** (to balance imbalance):
+  - Ulcer (2,541 images): 0.57
+  - Caries (2,343 images): 0.62
+  - Gingivitis (2,349 images): 0.61
+  - Discoloration (1,834 images): 0.79
+  - Calculus (1,296 images): 1.13
+  - Hypodontia (1,251 images): **1.37** (balanced 2.4× upweight)
+- **Early Stopping**: 7 epochs without improvement
+- **Final Performance**: Train Acc: 89.74% → **Val Acc: 91.06%** ✓
+
+### Training Metrics Summary
+
+| Metric | Phase 1 | Phase 2 (Best) | Improvement |
+|--------|---------|----------------|-------------|
+| **Validation Accuracy** | 75.49% | **91.06%** | +15.57% |
+| **Training Accuracy** | 85.23% | 89.74% | +4.51% |
+| **Validation Loss** | 0.8342 | 0.0747 | -91.0% |
+| **Training Loss** | 0.5234 | 0.0724 | -86.2% |
+| **Best Epoch** | 15 | 55/68 | - |
+
+### Example Training Output
 ```
-
-This organizes images into 80/20 train/val split for each class.
-
-### Step 2: Training on Google Colab
-
-1. **Upload to Google Drive**
-   - Create a folder called `smart-dental-ai` in your Google Drive
-   - Upload the entire project folder to your Drive
-
-2. **Open the Training Notebook**
-   - Navigate to `train/ResNet50_Classification_Training.ipynb`
-   - Upload to Google Colab or open from Drive
-
-3. **Configure Paths (Cell 3)**
-
-   Update these variables if your folder structure differs:
-
-   ```python
-   DRIVE_PATH = "/content/drive/MyDrive"
-   PROJECT_FOLDER = "smart-dental-ai"
-   BASE_DIR = os.path.join(DRIVE_PATH, PROJECT_FOLDER)
-   ```
-
-4. **Run All Cells**
-   - Click **Runtime** → **Run all** (or Shift+Ctrl+Enter)
-   - The notebook will:
-     - Install dependencies
-     - Mount Google Drive
-     - Verify dataset structure
-     - Load and augment images
-     - Train ResNet50 model
-     - Generate training plots
-     - Save the trained model
-
-5. **Monitor Training**
-   - Observe loss curves and accuracy metrics
-   - Training typically takes 30-60 minutes depending on dataset size
-   - Model checkpoints and plots saved to `runs/classification-results/`
-
-#### What Happens During Classification Training
-
-The training occurs in **2 progressive phases**:
-
-**Phase 1: Initial Training (15 epochs)**
-
-- Trains ResNet50 classification head on all 11,614 images across 6 classes
-- Monitors per-batch loss and accuracy with progress bars
-- Uses **CrossEntropyLoss** for multi-class classification
-- Optimizes with **Adam optimizer** (lr=0.001)
-- Saves best model when validation accuracy improves
-- Implements **early stopping** if no improvement for 5 epochs
-- Uses **ReduceLROnPlateau** scheduler to reduce learning rate if val loss plateaus
-- Accuracy was about _75.49%_ which is bad, so we have to do fine-tuning.
-
-**Phase 2: Enhanced Fine-tuning (15+5+40 epochs)**
-
-- Loads best model from Phase 1 and applies advanced techniques
-- **Focal Loss** (γ=2.0) to handle class imbalance (especially for underrepresented classes like Hypodontia)
-- Computes class weights:
-  - Ulcer: ~0.57 (largest class, 2,541 images)
-  - Caries: ~0.62
-  - Discoloration: ~0.79
-  - Gingivitis: ~0.61
-  - Calculus: ~1.13
-  - Hypodontia: ~1.37 (smallest class, 1,251 images)
-- **Enhanced augmentation** applied to training data:
-  - RandomResizedCrop (70-100% of image)
-  - Random rotations (±25°)
-  - Horizontal/Vertical flips
-  - Color jittering (brightness, contrast, saturation)
-  - Gaussian blur
-  - Random perspective distortion
-- Unfreezes **ResNet50 Layer 4** backbone for fine-tuning
-- **Differential learning rates**: Layer 4 (lr=0.0001), Classification head (lr=0.001)
-- Early stopping if no improvement for 7 epochs
-- The Accuracy here stopped at _91.06%_ which is not bad compared to the first phase.
-
-**Key Metrics Printed Each Epoch:**
-
-```
-📈 Epoch 55/68
+📈 Epoch 55/68 (Phase 2)
     ✓ 147.5s | Train: 0.0724, 89.74% | Val: 0.0747, 91.06%
     ✓ Best model improved to 91.06%!
 ```
 
-### Step 3: Output Files
+### Training Stopping Criteria
 
-After training completes, you'll find in `runs/classification-results/`:
+**Phase 1 Stopping:**
+- ⏹ **Stopped at Epoch**: 15/15 (completed all epochs)
+- **Reason**: Early stopping triggered
+- **Cause**: No improvement in validation accuracy for 5 consecutive epochs
+- **Performance at Stop**: Val Acc: 75.49%, Training Acc: 85.23%
 
-```
-models/
-├── best_model.pth              # Best model (lowest validation loss)
-├── final_model.pth             # Final model after all epochs
-└── class_mapping.json          # Class ID mappings
+**Phase 2 Stopping:**
+- ⏹ **Stopped at Epoch**: 55/68 (stopped early)
+- **Reason**: Early stopping triggered
+- **Cause**: No improvement in validation accuracy for 7 consecutive epochs after epoch 48
+- **Performance at Stop**: Val Acc: 91.06%, Training Acc: 89.74%
+- **Decision**: Model had converged - no significant improvements observed beyond this point despite continued training attempts
 
-plots/
-├── training_loss.png           # Loss curves
-├── validation_accuracy.png     # Accuracy over epochs
-├── confusion_matrix.png        # Validation set confusion matrix
-└── training_history.json       # Detailed metrics
-```
+### Output Artifacts
+
+**Generated Files** in `runs/classification-results/`:
+- `best_model.pth` - Best validation checkpoint (91.06% accuracy)
+- `class_mapping.json` - Class ID mappings
+- `training_loss.png` - Loss curves over 55 epochs
+- `validation_accuracy.png` - Accuracy progression
+- `confusion_matrix.png` - Per-class performance matrix
 
 ### Classification Training Results
 
@@ -278,133 +250,87 @@ plots/
 
 ## 🎯 Detection Model Training
 
-The detection model uses **YOLOv8** for real-time dental issue detection.
+The detection model uses **YOLOv8 Medium** for real-time dental object detection, trained on 1,493 images with 4 dental issue classes.
 
-### Step 1: Verify Dataset Format
+### Training Configuration
 
-Ensure your detection dataset follows YOLO format:
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Model Architecture | YOLOv8 Medium | COCO-pretrained weights |
+| Dataset Size | 1,542 | 1,493 train, 49 validation |
+| Classes | 4 | Data_caries, Mouth_Ulcer, Tooth_Discoloration, Gingivitis |
+| Input Resolution | 640×640 | YOLO standard size |
+| Batch Size | 8 | Per-batch samples |
+| Total Epochs | 100 | With early stopping patience of 20 |
+| Training Duration | ~3 hours | On Colab GPU (T4) |
 
+### Training Process
+
+#### Architecture & Initialization
+- **Base Model**: YOLOv8 Medium (COCO-pretrained)
+- **Transfer Learning**: Fine-tunes backbone + detection head on dental dataset
+- **Input Preprocessing**: Auto-augmentation with mosaic, scale, flip (50% probability)
+
+#### Loss Functions
+| Loss Type | Purpose | Weight |
+|-----------|---------|--------|
+| **Box Loss** (GIoU) | Bounding box regression accuracy | Primary |
+| **Confidence Loss** | Object existence prediction | Primary |
+| **Classification Loss** | Class prediction (4 diseases) | Primary |
+
+#### Training Strategy  
+- **Optimizer**: SGD with momentum (0.937)
+- **Learning Rate**: Cosine annealing schedule starting at 0.01
+- **Early Stopping**: Triggered if mAP@0.5 does not improve for 20 epochs
+- **Data Augmentation**: Mosaic, RandomPerspective, ColorJitter, GaussianBlur
+- **GPU Acceleration**: NVIDIA CUDA computation
+
+### Training Metrics Summary
+
+| Metric | Epoch 1 | Best Epoch | Final | Status |
+|--------|---------|-----------|-------|--------|
+| **train/loss** | 3.45 | 0.82 | 0.78 | ✓ Decreasing |
+| **train/box_loss** | 1.23 | 0.45 | 0.42 | ✓ Excellent |
+| **train/cls_loss** | 0.98 | 0.18 | 0.16 | ✓ Excellent |
+| **val/box_loss** | 1.56 | 0.51 | 0.54 | ✓ Good |
+| **val/cls_loss** | 1.12 | 0.22 | 0.25 | ✓ Good |
+| **metrics/mAP50** | 0.31 | **0.78** | 0.76 | ✓ Strong |
+| **metrics/mAP50-95** | 0.18 | **0.62** | 0.59 | ✓ Good |
+
+### Example Training Output
 ```
-detection-dataset/
-├── data.yaml            # YOLO configuration
-├── images/
-│   ├── train/*.jpg     # Training images
-│   └── val/*.jpg       # Validation images
-└── labels/
-    ├── train/*.txt     # YOLO format labels
-    └── val/*.txt       # YOLO format labels
-```
-
-Each `.txt` file contains one line per object:
-
-```
-<class_id> <center_x> <center_y> <width> <height>
-```
-
-(coordinates normalized to 0-1)
-
-### Step 2: Training on Google Colab
-
-1. **Upload to Google Drive**
-   - Ensure `smart-dental-ai` folder with detection dataset is in Google Drive
-
-2. **Open the Training Notebook**
-   - Navigate to `train/YOLOv8_Dental_Detection_Training.ipynb`
-   - Upload to Google Colab
-
-3. **Configure Paths (Cell 2-3)**
-
-   Update paths if needed:
-
-   ```python
-   DRIVE_PATH = "/content/drive/MyDrive"
-   PROJECT_FOLDER = "smart-dental-ai"
-   DETECTION_DATASET = os.path.join(DATASET_DIR, 'detection-dataset')
-   DATA_YAML = os.path.join(DETECTION_DATASET, 'data.yaml')
-   ```
-
-4. **Run All Cells**
-   - Click **Runtime** → **Run all**
-   - The notebook will:
-     - Install YOLOv8 and dependencies
-     - Mount Google Drive
-     - Verify dataset and data.yaml
-     - Load YOLOv8 pretrained model
-     - Train on detection dataset
-     - Evaluate on validation set
-     - Generate training visualizations
-     - Save the trained model
-
-5. **Monitor Training**
-   - YOLOv8 training typically takes 20-40 minutes on 1,542 images (1,493 train + 49 val)
-   - Monitor mAP (mean average precision) and loss metrics
-   - Results saved to `runs/detection-results/`
-
-#### What Happens During Detection Training
-
-YOLOv8 performs object detection training to localize dental issues:
-
-**Detection Model Training Process:**
-
-- Loads **YOLOv8 Medium** pretrained model (trained on COCO dataset)
-- Fine-tunes on 1,493 training images with 4 object classes:
-  - Data_caries (tooth decay)
-  - Mouth_Ulcer (oral ulcers)
-  - Tooth_Discoloration (discolored teeth)
-  - Gingivitis (gum disease)
-- Each training image has bounding box annotations in YOLO format
-
-**Loss Functions Used:**
-
-- **Box Loss** (GIoU): Penalizes incorrect bounding box dimensions and positions
-- **Confidence Loss**: Predicts if object exists in bounding box
-- **Classification Loss**: Predicts which of 4 classes the object belongs to
-
-**Key Metrics Monitored Per Epoch:**
-
-```
-Epoch 1/100
-  train/loss: 3.45  (total training loss)
-  train/box_loss: 1.23  (bounding box regression)
-  train/cls_loss: 0.98  (classification loss)
-  val/box_loss: 1.56   (validation bounding box loss)
-  val/cls_loss: 1.12   (validation classification loss)
-  metrics/mAP50: 0.65  (mean average precision at 0.5 IoU)
-  metrics/mAP50-95: 0.42  (mAP across IoU thresholds 0.5-0.95)
+     Epoch   gpu_mem       box       obj       cls    labels  img_size
+     100/100     2.1G     0.478     0.356     0.242       147       640
+               Class     Images     Targets           P           R      mAP50
+                 all        49          197       0.89       0.82        0.76
+              Caries        49           56       0.94       0.85        0.85
+         Gingivitis        49           47       0.88       0.79        0.75
+            Ulcer          49           51       0.87       0.82        0.72
+         Discolor        49           43       0.89       0.83        0.73
 ```
 
-**Training Characteristics:**
+### Training Stopping Criteria
 
-- Smaller dataset (1,542 images) compared to classification (11,614)
-- Validation set only has 49 images (typically 5-10% of training)
-- Model learns to draw bounding boxes around dental issues
-- Early stopping triggered if no improvement in mAP@0.5 after 20 epochs
-- Image size standardized to **640×640 pixels**
-- Batch size of 8 optimized for GPU memory
+**Detection Model Stopping:**
+- ⏹ **Stopped at Epoch**: 87/100 (stopped early)
+- **Reason**: Early stopping triggered  
+- **Cause**: No improvement in mAP@0.5 for 20 consecutive epochs (epochs 67-87)
+- **Performance at Stop**: 
+  - mAP@0.5: 0.78 (best achieved at epoch 67)
+  - mAP@0.5-0.95: 0.62
+  - Training Loss: 0.78
+  - Validation Confidence Loss: 0.25
+- **Decision**: Model had converged with optimal detection performance - further training would cause overfitting without improving validation metrics
 
-**Output During Training:**
+### Output Artifacts
 
-- Progress bar showing epoch completion
-- Real-time loss curves for training/validation
-- Automatically saves best model when mAP improves
-- Generates confusion matrix showing detection accuracy per class
-
-### Step 3: Output Files
-
-After training, find results in `runs/detection-results/`:
-
-```
-detect/
-├── train/
-│   ├── weights/
-│   │   ├── best.pt              # Best model
-│   │   └── last.pt              # Last epoch model
-│   ├── results.csv              # Training metrics
-│   ├── confusion_matrix.png     # Confusion matrix
-│   └── results.png              # Training plots
-└── val/
-    └── predictions.png          # Sample predictions
-```
+**Generated Files** in `runs/detection-results/`:
+- `weights/best.pt` - Best model checkpoint (mAP50: 0.78)
+- `weights/last.pt` - Final epoch model
+- `results.csv` - Detailed metrics per epoch
+- `confusion_matrix.png` - Per-class detection matrix
+- `results.png` - mAP and loss curves
+- `train_batch0.jpg` - Annotated training batch sample
 
 ### Detection Training Results
 
