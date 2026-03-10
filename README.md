@@ -163,19 +163,20 @@ The classification model uses **ResNet50** to classify dental conditions from to
 
 ### Training Configuration
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| Model Architecture | ResNet50 | 50-layer residual network |
-| Dataset Size | 11,614 | 9,288 train, 2,326 validation |
-| Classes | 6 | Calculus, Caries, Discoloration, Gingivitis, Hypodontia, Ulcer |
-| Input Resolution | 224×224 | Standard ResNet input size |
-| Batch Size | 16 | Per-batch training samples |
-| Total Epochs | 55-68 | Phase 1 + Phase 2 training |
-| Training Duration | ~5 hours | On Colab GPU (T4) |
+| Parameter          | Value    | Description                                                    |
+| ------------------ | -------- | -------------------------------------------------------------- |
+| Model Architecture | ResNet50 | 50-layer residual network                                      |
+| Dataset Size       | 11,614   | 9,288 train, 2,326 validation                                  |
+| Classes            | 6        | Calculus, Caries, Discoloration, Gingivitis, Hypodontia, Ulcer |
+| Input Resolution   | 224×224  | Standard ResNet input size                                     |
+| Batch Size         | 16       | Per-batch training samples                                     |
+| Total Epochs       | 55-68    | Phase 1 + Phase 2 training                                     |
+| Training Duration  | ~5 hours | On Colab GPU (T4)                                              |
 
 ### Training Process
 
 #### Phase 1: Initial Training
+
 - **Duration**: 15 epochs
 - **Loss Function**: CrossEntropyLoss
 - **Optimizer**: Adam (lr=0.001)
@@ -184,14 +185,15 @@ The classification model uses **ResNet50** to classify dental conditions from to
 - **Performance**: Train Acc: 85.23% → Val Acc: 75.49%
 
 #### Phase 2: Enhanced Fine-tuning
-- **Duration**: 40 additional epochs  
+
+- **Duration**: 40 additional epochs
 - **Loss Function**: Focal Loss (γ=2.0) for class imbalance handling
 - **Optimizer**: Differential Adam (Backbone: 1e-4, Head: 1e-3)
 - **Unfrozen Layers**: ResNet50 Layer 4 + Classification head
 - **Data Augmentation**:
   - RandomResizedCrop (70-100%)
   - ±25° rotations
-  - Horizontal/Vertical flips  
+  - Horizontal/Vertical flips
   - ColorJitter, GaussianBlur, RandomPerspective
 - **Class Weights** (to balance imbalance):
   - Ulcer (2,541 images): 0.57
@@ -205,15 +207,16 @@ The classification model uses **ResNet50** to classify dental conditions from to
 
 ### Training Metrics Summary
 
-| Metric | Phase 1 | Phase 2 (Best) | Improvement |
-|--------|---------|----------------|-------------|
-| **Validation Accuracy** | 75.49% | **91.06%** | +15.57% |
-| **Training Accuracy** | 85.23% | 89.74% | +4.51% |
-| **Validation Loss** | 0.8342 | 0.0747 | -91.0% |
-| **Training Loss** | 0.5234 | 0.0724 | -86.2% |
-| **Best Epoch** | 15 | 55/68 | - |
+| Metric                  | Phase 1 | Phase 2 (Best) | Improvement |
+| ----------------------- | ------- | -------------- | ----------- |
+| **Validation Accuracy** | 75.49%  | **91.06%**     | +15.57%     |
+| **Training Accuracy**   | 85.23%  | 89.74%         | +4.51%      |
+| **Validation Loss**     | 0.8342  | 0.0747         | -91.0%      |
+| **Training Loss**       | 0.5234  | 0.0724         | -86.2%      |
+| **Best Epoch**          | 15      | 55/68          | -           |
 
 ### Example Training Output
+
 ```
 📈 Epoch 55/68 (Phase 2)
     ✓ 147.5s | Train: 0.0724, 89.74% | Val: 0.0747, 91.06%
@@ -223,12 +226,14 @@ The classification model uses **ResNet50** to classify dental conditions from to
 ### Training Stopping Criteria
 
 **Phase 1 Stopping:**
+
 - ⏹ **Stopped at Epoch**: 15/15 (completed all epochs)
 - **Reason**: Early stopping triggered
 - **Cause**: No improvement in validation accuracy for 5 consecutive epochs
 - **Performance at Stop**: Val Acc: 75.49%, Training Acc: 85.23%
 
 **Phase 2 Stopping:**
+
 - ⏹ **Stopped at Epoch**: 55/68 (stopped early)
 - **Reason**: Early stopping triggered
 - **Cause**: No improvement in validation accuracy for 7 consecutive epochs after epoch 48
@@ -238,6 +243,7 @@ The classification model uses **ResNet50** to classify dental conditions from to
 ### Output Artifacts
 
 **Generated Files** in `runs/classification-results/`:
+
 - `best_model.pth` - Best validation checkpoint (91.06% accuracy)
 - `class_mapping.json` - Class ID mappings
 - `training_loss.png` - Loss curves over 55 epochs
@@ -254,31 +260,34 @@ The detection model uses **YOLOv8 Medium** for real-time dental object detection
 
 ### Training Configuration
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| Model Architecture | YOLOv8 Medium | COCO-pretrained weights |
-| Dataset Size | 1,542 | 1,493 train, 49 validation |
-| Classes | 4 | Data_caries, Mouth_Ulcer, Tooth_Discoloration, Gingivitis |
-| Input Resolution | 640×640 | YOLO standard size |
-| Batch Size | 8 | Per-batch samples |
-| Total Epochs | 100 | With early stopping patience of 20 |
-| Training Duration | ~3 hours | On Colab GPU (T4) |
+| Parameter          | Value         | Description                                               |
+| ------------------ | ------------- | --------------------------------------------------------- |
+| Model Architecture | YOLOv8 Medium | COCO-pretrained weights                                   |
+| Dataset Size       | 1,542         | 1,493 train, 49 validation                                |
+| Classes            | 4             | Data_caries, Mouth_Ulcer, Tooth_Discoloration, Gingivitis |
+| Input Resolution   | 640×640       | YOLO standard size                                        |
+| Batch Size         | 8             | Per-batch samples                                         |
+| Total Epochs       | 100           | With early stopping patience of 20                        |
+| Training Duration  | ~3 hours      | On Colab GPU (T4)                                         |
 
 ### Training Process
 
 #### Architecture & Initialization
+
 - **Base Model**: YOLOv8 Medium (COCO-pretrained)
 - **Transfer Learning**: Fine-tunes backbone + detection head on dental dataset
 - **Input Preprocessing**: Auto-augmentation with mosaic, scale, flip (50% probability)
 
 #### Loss Functions
-| Loss Type | Purpose | Weight |
-|-----------|---------|--------|
-| **Box Loss** (GIoU) | Bounding box regression accuracy | Primary |
-| **Confidence Loss** | Object existence prediction | Primary |
-| **Classification Loss** | Class prediction (4 diseases) | Primary |
 
-#### Training Strategy  
+| Loss Type               | Purpose                          | Weight  |
+| ----------------------- | -------------------------------- | ------- |
+| **Box Loss** (GIoU)     | Bounding box regression accuracy | Primary |
+| **Confidence Loss**     | Object existence prediction      | Primary |
+| **Classification Loss** | Class prediction (4 diseases)    | Primary |
+
+#### Training Strategy
+
 - **Optimizer**: SGD with momentum (0.937)
 - **Learning Rate**: Cosine annealing schedule starting at 0.01
 - **Early Stopping**: Triggered if mAP@0.5 does not improve for 20 epochs
@@ -287,17 +296,18 @@ The detection model uses **YOLOv8 Medium** for real-time dental object detection
 
 ### Training Metrics Summary
 
-| Metric | Epoch 1 | Best Epoch | Final | Status |
-|--------|---------|-----------|-------|--------|
-| **train/loss** | 3.45 | 0.82 | 0.78 | ✓ Decreasing |
-| **train/box_loss** | 1.23 | 0.45 | 0.42 | ✓ Excellent |
-| **train/cls_loss** | 0.98 | 0.18 | 0.16 | ✓ Excellent |
-| **val/box_loss** | 1.56 | 0.51 | 0.54 | ✓ Good |
-| **val/cls_loss** | 1.12 | 0.22 | 0.25 | ✓ Good |
-| **metrics/mAP50** | 0.31 | **0.78** | 0.76 | ✓ Strong |
-| **metrics/mAP50-95** | 0.18 | **0.62** | 0.59 | ✓ Good |
+| Metric               | Epoch 1 | Best Epoch | Final | Status       |
+| -------------------- | ------- | ---------- | ----- | ------------ |
+| **train/loss**       | 3.45    | 0.82       | 0.78  | ✓ Decreasing |
+| **train/box_loss**   | 1.23    | 0.45       | 0.42  | ✓ Excellent  |
+| **train/cls_loss**   | 0.98    | 0.18       | 0.16  | ✓ Excellent  |
+| **val/box_loss**     | 1.56    | 0.51       | 0.54  | ✓ Good       |
+| **val/cls_loss**     | 1.12    | 0.22       | 0.25  | ✓ Good       |
+| **metrics/mAP50**    | 0.31    | **0.78**   | 0.76  | ✓ Strong     |
+| **metrics/mAP50-95** | 0.18    | **0.62**   | 0.59  | ✓ Good       |
 
 ### Example Training Output
+
 ```
      Epoch   gpu_mem       box       obj       cls    labels  img_size
      100/100     2.1G     0.478     0.356     0.242       147       640
@@ -312,10 +322,11 @@ The detection model uses **YOLOv8 Medium** for real-time dental object detection
 ### Training Stopping Criteria
 
 **Detection Model Stopping:**
+
 - ⏹ **Stopped at Epoch**: 87/100 (stopped early)
-- **Reason**: Early stopping triggered  
+- **Reason**: Early stopping triggered
 - **Cause**: No improvement in mAP@0.5 for 20 consecutive epochs (epochs 67-87)
-- **Performance at Stop**: 
+- **Performance at Stop**:
   - mAP@0.5: 0.78 (best achieved at epoch 67)
   - mAP@0.5-0.95: 0.62
   - Training Loss: 0.78
@@ -325,6 +336,7 @@ The detection model uses **YOLOv8 Medium** for real-time dental object detection
 ### Output Artifacts
 
 **Generated Files** in `runs/detection-results/`:
+
 - `weights/best.pt` - Best model checkpoint (mAP50: 0.78)
 - `weights/last.pt` - Final epoch model
 - `results.csv` - Detailed metrics per epoch
