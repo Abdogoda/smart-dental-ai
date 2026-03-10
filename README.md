@@ -13,7 +13,7 @@ AI-powered dental image analysis using ResNet50 + YOLOv8
 
 ### Conditions Detected
 
-🦠 Calculus • 🍽️ Caries • 💄 Discoloration • 😬 Gingivitis • 🪥 Hypodontia • 🤕 Ulcer
+Calculus • Caries • Discoloration • Gingivitis • Hypodontia • Ulcer
 
 ---
 
@@ -52,7 +52,14 @@ AI-powered dental image analysis using ResNet50 + YOLOv8
 
 **⏹️ Stopped**: Epoch 55/68 (7 epochs no improvement)
 
-### 📊 Visualization
+### � Output Model
+
+| File | Location | Size | Accuracy |
+|------|----------|------|----------|
+| 💾 **best_model.pth** | `runs/classification-results/` | ~103 MB | 91.06% |
+| 📊 **Results Plots** | `runs/classification-results/` | - | - |
+
+### �📊 Visualization
 
 ![Classification Results](runs/classification-results/classification.png)
 
@@ -68,7 +75,15 @@ AI-powered dental image analysis using ResNet50 + YOLOv8
 
 **⏹️ Stopped**: Epoch 87/100 (20 epochs no mAP improvement)
 
-### 📊 Visualization
+### � Output Model
+
+| File | Location | Size | mAP@0.5 |
+|------|----------|------|----------|
+| 💾 **best.pt** | `runs/detection-results/weights/` | ~49 MB | 0.78 |
+| 💾 **last.pt** | `runs/detection-results/weights/` | ~49 MB | 0.76 |
+| 📊 **Results Plots** | `runs/detection-results/` | - | - |
+
+### �📊 Visualization
 
 ![Detection Results](runs/detection-results/train_batch0.jpg)
 
@@ -107,7 +122,3 @@ results = model.predict('tooth.jpg', conf=0.5)
 ✅ **Best Detection mAP**: 0.78  
 ✅ **Training Time**: 5h (classification) + 3h (detection)  
 ✅ **GPU Used**: NVIDIA T4 on Google Colab
-
----
-
-**Last Updated**: March 2026 | **Project**: Smart Dental AI
