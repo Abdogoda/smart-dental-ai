@@ -271,10 +271,10 @@ plots/
 ├── confusion_matrix.png        # Validation set confusion matrix
 └── training_history.json       # Detailed metrics
 ```
+
 ### Classification Training Results
 
-![Classification Training Results](runs/classification-results/classification.png)
----
+## ![Classification Training Results](runs/classification-results/classification.png)
 
 ## 🎯 Detection Model Training
 
