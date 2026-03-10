@@ -39,20 +39,10 @@ Thumbs.db
 
 # Jupyter Notebook
 .ipynb_checkpoints/
-*.ipynb
 
 # Environment variables
 .env
 .env.local
-
-# Model files and weights
-*.h5
-*.pkl
-*.pth
-*.onnx
-*.pb
-*.joblib
-*.model
 
 # Logs and outputs
 *.log
