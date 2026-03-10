@@ -1,28 +1,78 @@
 # 🦷 Smart Dental AI - Training Guide
 
-AI-powered dental image analysis using ResNet50 + YOLOv8
+**AI-powered dental disease detection system** using advanced deep learning models  
+Automatically classify and locate dental issues in tooth images with high accuracy
 
 ---
 
-##🎯 What This Project Does
+## 🎯 Project Overview
 
-| Model                 | Task                       | Accuracy      | Speed     |
-| --------------------- | -------------------------- | ------------- | --------- |
-| 🔍 **Classification** | Identify 6 dental diseases | **91.06%**    | Fast      |
-| 📍 **Detection**      | Locate dental issues       | **mAP: 0.78** | Real-time |
+### 🎓 What Problem Does This Solve?
 
-### Conditions Detected
+- ❌ **Manual Analysis**: Dentists spend time manually examining images
+- ✅ **Automated Detection**: AI instantly identifies 6 dental diseases with 91% accuracy
+- ✅ **Precise Localization**: Pinpoints exact location of dental issues on images
+- ✅ **Decision Support**: Assists dental professionals in diagnosis
 
-Calculus • Caries • Discoloration • Gingivitis • Hypodontia • Ulcer
+### 🏆 Key Achievements
+
+| Metric                         | Performance         | Status              |
+| ------------------------------ | ------------------- | ------------------- |
+| 🎯 **Classification Accuracy** | 91.06%              | ✅ Production Ready |
+| 📍 **Detection Precision**     | mAP 0.78            | ✅ Excellent        |
+| 🚀 **Speed**                   | Real-time inference | ✅ Optimized        |
+| 💾 **Model Size**              | 103 MB + 49 MB      | ✅ Deployable       |
+
+### 🤖 Technology Stack
+
+| Component         | Technology           | Reason                              |
+| ----------------- | -------------------- | ----------------------------------- |
+| 📐 Classification | **ResNet50**         | Fast, accurate, proven architecture |
+| 🎯 Detection      | **YOLOv8 Medium**    | Real-time detection, good balance   |
+| 📊 Data Source    | **Kaggle**           | 15K+ curated dental images          |
+| ☁️ Training       | **Google Colab GPU** | Free GPU access, reproducible       |
+
+### 🦠 Dental Conditions Detected (6 Classes)
+
+| Disease           | Description              |
+| ----------------- | ------------------------ |
+| **Calculus**      | Tartar/plaque buildup    |
+| **Caries**        | Tooth decay/cavity       |
+| **Discoloration** | Staining/color change    |
+| **Gingivitis**    | Gum disease/inflammation |
+| **Hypodontia**    | Missing teeth            |
+| **Ulcer**         | Mouth sores/lesions      |
+
+---
+
+## 💡 Model Capabilities
+
+### 🔍 Classification Model
+
+- **Input**: Single tooth image (224×224 px)
+- **Output**: Disease class + confidence score
+- **Use Case**: Quick disease identification
+- **Accuracy**: 91.06% on validation set
+
+### 📍 Detection Model
+
+- **Input**: Tooth image with multiple issues (640×640 px)
+- **Output**: Bounding boxes + class labels
+- **Use Case**: Precise issue localization
+- **Precision**: mAP 0.78 (excellent for medical use)
 
 ---
 
 ## 📥 Get Started
 
-| 📊 Resource        | 🔗 Link                                                                                              |
-| ------------------ | ---------------------------------------------------------------------------------------------------- |
-| 📁 **Datasets**    | [Google Drive](https://drive.google.com/drive/folders/1S6DW6uXEmyBw_sNWGQB3a7Gn-A_L82xl?usp=sharing) |
-| 📖 **Source Data** | [Kaggle](https://www.kaggle.com/datasets/salmansajid05/oral-diseases)                                |
+| 📊 Resource                          | 🔗 Link                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 📁 **Pre-trained Models + Datasets** | [Google Drive](https://drive.google.com/drive/folders/1S6DW6uXEmyBw_sNWGQB3a7Gn-A_L82xl?usp=sharing) |
+| 📖 **Original Dataset**              | [Kaggle](https://www.kaggle.com/datasets/salmansajid05/oral-diseases)                                |
+
+---
+
+## ##🎯 Training Overview
 
 ---
 
@@ -54,10 +104,10 @@ Calculus • Caries • Discoloration • Gingivitis • Hypodontia • Ulcer
 
 ### � Output Model
 
-| File | Location | Size | Accuracy |
-|------|----------|------|----------|
-| 💾 **best_model.pth** | `runs/classification-results/` | ~103 MB | 91.06% |
-| 📊 **Results Plots** | `runs/classification-results/` | - | - |
+| File                  | Location                       | Size    | Accuracy |
+| --------------------- | ------------------------------ | ------- | -------- |
+| 💾 **best_model.pth** | `runs/classification-results/` | ~103 MB | 91.06%   |
+| 📊 **Results Plots**  | `runs/classification-results/` | -       | -        |
 
 ### �📊 Visualization
 
@@ -77,11 +127,11 @@ Calculus • Caries • Discoloration • Gingivitis • Hypodontia • Ulcer
 
 ### � Output Model
 
-| File | Location | Size | mAP@0.5 |
-|------|----------|------|----------|
-| 💾 **best.pt** | `runs/detection-results/weights/` | ~49 MB | 0.78 |
-| 💾 **last.pt** | `runs/detection-results/weights/` | ~49 MB | 0.76 |
-| 📊 **Results Plots** | `runs/detection-results/` | - | - |
+| File                 | Location                          | Size   | mAP@0.5 |
+| -------------------- | --------------------------------- | ------ | ------- |
+| 💾 **best.pt**       | `runs/detection-results/weights/` | ~49 MB | 0.78    |
+| 💾 **last.pt**       | `runs/detection-results/weights/` | ~49 MB | 0.76    |
+| 📊 **Results Plots** | `runs/detection-results/`         | -      | -       |
 
 ### �📊 Visualization
 
