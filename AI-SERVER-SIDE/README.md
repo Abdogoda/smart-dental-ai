@@ -15,8 +15,9 @@ A production-ready FastAPI microservice for dental image analysis using YOLOv8 o
 
 1. **`GET /`** - Redirects to interactive API documentation
 2. **`GET /docs`** - Swagger UI for API exploration
-3. **`POST /diagnose`** - Main diagnosis endpoint with image analysis
-4. **`POST /chat`** - Conversational AI for follow-up questions
+3. **`POST /diagnose`** - Single image diagnosis endpoint with AI analysis
+4. **`POST /diagnose-batch`** - Batch processing endpoint (up to 10 images per request)
+5. **`POST /chat`** - Conversational AI for follow-up questions
 
 ### Testing & Validation
 
@@ -123,7 +124,7 @@ numpy<2  # For ultralytics compatibility
 
 ### POST /diagnose
 
-**Analyze dental image and return detection + classification + report**
+**Analyze single dental image and return detection + classification + report**
 
 **Request:**
 
@@ -139,24 +140,76 @@ curl -X POST "http://localhost:8000/diagnose" \
 {
   "status": "success",
   "detection": {
-    "classification_label": "Tooth Discoloration",
-    "classification_confidence": 0.9999,
-    "classification_probabilities": {
-      "Calculus": 0.0,
-      "Dental Caries": 0.0043,
-      "Tooth Discoloration": 0.9999,
-      "Caries Gingivitis": 0.0007,
+    "detections": [
+      {"label": "Dental Caries", "confidence": 0.95},
+      {"label": "Mouth Ulcer", "confidence": 0.87}
+    ],
+    "classification": {
+      "Calculus": 0.0043,
+      "Dental Caries": 0.0999,
+      "Tooth Discoloration": 0.8765,
+      "Caries Gingivitis": 0.0087,
       "Hypodontia": 0.0001,
-      "Mouth Ulcer": 0.0055
+      "Mouth Ulcer": 0.0105
     },
     "detection_image": "iVBORw0KGgoAAAANS..." // Base64 PNG with YOLO detections
   },
-  "report": "The patient shows significant signs of tooth discoloration...",
+  "report": "The patient shows significant signs of tooth discoloration with associated gingival inflammation...",
   "urgency_level": "medium",
   "action_plan": [
     "Schedule professional cleaning",
     "Discuss whitening options",
     "Maintain daily oral hygiene"
+  ]
+}
+```
+
+### POST /diagnose-batch
+
+**Analyze multiple dental images at once (up to 10 per request)**
+
+**Request:**
+
+```bash
+curl -X POST "http://localhost:8000/diagnose-batch" \
+  -H "accept: application/json" \
+  -F "files=@image1.jpg" \
+  -F "files=@image2.jpg" \
+  -F "files=@image3.jpg"
+```
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "count": 3,
+  "results": [
+    {
+      "filename": "image1.jpg",
+      "detection": {
+        "detections": [...],
+        "classification": {...},
+        "detection_image": "iVBORw0KGgo..."
+      },
+      "report": "Patient shows moderate discoloration...",
+      "urgency_level": "low",
+      "action_plan": [...]
+    },
+    {
+      "filename": "image2.jpg",
+      "detection": {...},
+      "report": "Significant decay detected...",
+      "urgency_level": "high",
+      "action_plan": [...]
+    },
+    {
+      "filename": "image3.jpg",
+      "detection": {...},
+      "report": "Minor plaque buildup...",
+      "urgency_level": "medium",
+      "action_plan": [...]
+    }
   ]
 }
 ```
@@ -196,6 +249,8 @@ Tests validate:
 
 - ✅ Server connectivity
 - ✅ Root endpoint redirection
+- ✅ Single image analysis (/diagnose)
+- ✅ **Batch image processing (/diagnose-batch)** - NEW!
 - ✅ JPEG, PNG, WEBP image processing
 - ✅ Invalid MIME type rejection
 - ✅ File size validation

@@ -307,7 +307,86 @@ def test_diagnose_no_file():
         print_fail(str(e))
         return False
 
-def test_chat_endpoint():
+def test_diagnose_no_file():
+    """Test POST /diagnose with no file"""
+    print_test("POST /diagnose with no file")
+    try:
+        response = requests.post(f"{BASE_URL}/diagnose", timeout=TIMEOUT)
+        
+        if response.status_code == 422:
+            print_pass("Correctly rejected with 422")
+            return True
+        else:
+            print_fail(f"Expected 422, got {response.status_code}")
+            return False
+    except Exception as e:
+        print_fail(str(e))
+        return False
+
+def test_diagnose_batch():
+    """Test POST /diagnose-batch with multiple images"""
+    print_test("POST /diagnose-batch with 3 random images")
+    try:
+        # Get 3 random images
+        images = []
+        for i in range(3):
+            img_data, img_name = get_test_image('JPEG')
+            images.append(('files', (img_name, img_data, 'image/jpeg')))
+        
+        response = requests.post(f"{BASE_URL}/diagnose-batch", files=images, timeout=TIMEOUT * 3)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Validate response structure
+            if 'status' not in data or 'count' not in data or 'results' not in data:
+                print_fail("Missing response fields")
+                return False
+            
+            if data['count'] != 3:
+                print_fail(f"Expected count=3, got {data['count']}")
+                return False
+            
+            if len(data['results']) != 3:
+                print_fail(f"Expected 3 results, got {len(data['results'])}")
+                return False
+            
+            # Validate first result
+            first_result = data['results'][0]
+            required_fields = ['filename', 'report', 'urgency_level', 'action_plan', 'detection']
+            missing = [f for f in required_fields if f not in first_result]
+            
+            if missing:
+                print_fail(f"Missing fields in result: {missing}")
+                return False
+            
+            print_pass()
+            print_info(f"Successfully processed {data['count']} images")
+            for idx, result in enumerate(data['results'], 1):
+                print_info(f"  Image {idx}: {result['filename']}")
+            return True
+        else:
+            print_fail(f"Status {response.status_code}: {response.text[:100]}")
+            return False
+    except Exception as e:
+        print_fail(str(e))
+        return False
+
+def test_diagnose_batch_empty():
+    """Test POST /diagnose-batch with no files"""
+    print_test("POST /diagnose-batch with no files")
+    try:
+        response = requests.post(f"{BASE_URL}/diagnose-batch", timeout=TIMEOUT)
+        
+        if response.status_code == 400 or response.status_code == 422:
+            print_pass("Correctly rejected")
+            return True
+        else:
+            print_fail(f"Expected 400/422, got {response.status_code}")
+            return False
+    except Exception as e:
+        print_fail(str(e))
+        return False
     """Test POST /chat endpoint"""
     print_test("POST /chat with valid question")
     try:
@@ -423,7 +502,11 @@ def run_all_tests():
     test_diagnose_large_file()
     test_diagnose_no_file()
     
-    print_header("💬 CHAT ENDPOINT TESTS")
+    print_header("� BATCH DIAGNOSE ENDPOINT TESTS")
+    test_diagnose_batch()
+    test_diagnose_batch_empty()
+    
+    print_header("�💬 CHAT ENDPOINT TESTS")
     test_chat_endpoint()
     test_chat_empty_question()
     test_chat_missing_fields()

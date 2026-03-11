@@ -2,12 +2,13 @@
 import uuid, os
 from pathlib import Path
 from contextlib import asynccontextmanager
+from typing import List
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from dotenv import load_dotenv
  
-from app.schemas import DiagnosisResponse, ChatRequest, ChatResponse
+from app.schemas import DiagnosisResponse, ChatRequest, ChatResponse, BatchDiagnosisResponse, BatchDiagnosisItem
 from app.inference import run_inference, _load_models
 from app.gemini_report import generate_report, chat_with_context
  
@@ -82,6 +83,63 @@ async def diagnose(file: UploadFile = File(...)):
         raise HTTPException(500, error_msg)
     finally:
         tmp_path.unlink(missing_ok=True)  # always delete temp file
+
+
+# ── POST /diagnose-batch ────────────────────────────────────────────────────
+@app.post('/diagnose-batch', response_model=BatchDiagnosisResponse)
+async def diagnose_batch(files: List[UploadFile] = File(...)):
+    """Process multiple images at once (up to 10 per request)"""
+    if not files:
+        raise HTTPException(400, 'No files provided')
+    
+    if len(files) > 10:
+        raise HTTPException(413, 'Maximum 10 images allowed per batch')
+    
+    results = []
+    errors = []
+    
+    for file in files:
+        try:
+            # Validate MIME type
+            if file.content_type not in ALLOWED_TYPES:
+                errors.append(f'{file.filename}: Invalid file type')
+                continue
+            
+            # Validate file size
+            content = await file.read()
+            if len(content) > MAX_SIZE_MB * 1024 * 1024:
+                errors.append(f'{file.filename}: Exceeds {MAX_SIZE_MB}MB')
+                continue
+            
+            # Save with unique name
+            suffix   = Path(file.filename).suffix
+            tmp_path = UPLOAD_DIR / f'{uuid.uuid4()}{suffix}'
+            tmp_path.write_bytes(content)
+            
+            try:
+                detection = run_inference(str(tmp_path))
+                report_data = generate_report(detection)
+                
+                results.append(BatchDiagnosisItem(
+                    filename=file.filename,
+                    detection=detection,
+                    report=report_data['report'],
+                    urgency_level=report_data['urgency_level'],
+                    action_plan=report_data['action_plan'],
+                ))
+            finally:
+                tmp_path.unlink(missing_ok=True)
+        
+        except Exception as e:
+            errors.append(f'{file.filename}: {str(e)}')
+    
+    if not results:
+        raise HTTPException(400, f'No images processed. Errors: {errors}')
+    
+    return BatchDiagnosisResponse(
+        count=len(results),
+        results=results,
+    )
  
  
 # ── POST /chat ────────────────────────────────────────────────────────────
