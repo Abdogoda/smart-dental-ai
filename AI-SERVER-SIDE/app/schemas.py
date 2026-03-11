@@ -19,9 +19,9 @@ class DetectionResult(BaseModel):
 class DiagnosisResponse(BaseModel):
     status: str = 'success'
     detection: DetectionResult
-    report: str                      # plain-language medical summary
+    report: str                      # Professional clinical summary
     urgency_level: str               # 'low' | 'medium' | 'high'
-    action_plan: List[str]           # list of recommended steps
+    action_plan: List[str]           # Recommended steps
 
 
 class ChatRequest(BaseModel):

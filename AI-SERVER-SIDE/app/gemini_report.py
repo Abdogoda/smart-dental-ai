@@ -11,21 +11,26 @@ _model = genai.GenerativeModel(GEMINI_MODEL)
  
  
 def generate_report(detection: DetectionResult) -> dict:
-    prompt = f'''You are a dental AI assistant.
-Analyze these findings and respond ONLY with valid JSON — no markdown.
- 
+    # Build detected items list
+    detected_items = []
+    if detection.detections:
+        for det in detection.detections:
+            detected_items.append(f"{det.label} ({det.confidence:.0%})")
+    detected_str = ", ".join(detected_items) if detected_items else "No significant findings"
+    
+    prompt = f'''You are a dental professional. Analyze these findings and respond ONLY with valid JSON.
+
 Findings:
-- Overall classification: {detection.classification_label}
-  ({detection.classification_confidence:.0%} confidence)
-- Classification probabilities: {detection.classification_probabilities}
- 
-Respond with exactly this JSON structure:
+- Classification: {detection.classification_label} ({detection.classification_confidence:.0%})
+- Detected: {detected_str}
+
+Respond with ONLY this JSON:
 {{
-  "report": "10-15 sentence plain-language explanation for the patient",
-  "urgency_level": "low | medium | high",
+  "report": "5-10 sentence professional summary of findings and recommendations",
+  "urgency_level": "low" or "medium" or "high",
   "action_plan": ["step 1", "step 2", "step 3"]
 }}'''
- 
+    
     try:
         response = _model.generate_content(prompt)
         raw = response.text.strip()
@@ -34,16 +39,20 @@ Respond with exactly this JSON structure:
                      flags=re.MULTILINE).strip()
         data = json.loads(raw)
         return {
-            'report':        data.get('report', ''),
+            'report': data.get('report', ''),
             'urgency_level': data.get('urgency_level', 'medium'),
-            'action_plan':   data.get('action_plan', []),
+            'action_plan': data.get('action_plan', []),
         }
     except Exception as e:
         # Graceful fallback if Gemini unavailable
         return {
-            'report': f'Analysis indicates {detection.classification_label} with {detection.classification_confidence:.0%} confidence.',
+            'report': f'The analysis indicates {detection.classification_label} with {detection.classification_confidence:.0%} confidence. Detected conditions: {detected_str}. Recommend professional evaluation.',
             'urgency_level': 'medium',
-            'action_plan': ['Consult with dentist for professional evaluation'],
+            'action_plan': [
+                'Schedule dental consultation',
+                'Discuss findings with dentist',
+                'Follow professional recommendations'
+            ],
         }
  
  

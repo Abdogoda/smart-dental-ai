@@ -211,7 +211,25 @@ def test_diagnose_with_valid_image():
                 print_fail("detection_image is missing or too small")
                 return False
             
+            # Validate report fields
+            report = data.get('report', '')
+            if not report or len(report) < 20:
+                print_fail("report should be a meaningful summary")
+                return False
+            
+            action_plan = data.get('action_plan', [])
+            if not isinstance(action_plan, list) or len(action_plan) < 2:
+                print_fail("action_plan should have at least 2 steps")
+                return False
+            
             print_pass("Response valid and complete")
+            
+            # Display report information
+            print_info(f"Report: {report[:100]}...")
+            print_info(f"Urgency Level: {data['urgency_level']}")
+            print_info(f"Action Plan:")
+            for step in action_plan:
+                print_info(f"  • {step}")
             
             # Display detections
             detections = detection.get('detections', [])
@@ -225,6 +243,12 @@ def test_diagnose_with_valid_image():
             print_info(f"Overall Classification: {detection['classification_label']} "
                       f"({detection['classification_confidence']:.2%})")
             print_info(f"Probabilities: {json.dumps(probs, indent=2)}")
+            
+            # Save detection image
+            img_path = save_detection_image(detection_img, "diagnose_jpeg")
+            if img_path:
+                print_info(f"Detection image saved: {img_path}")
+            return True
             
             # Save detection image
             img_path = save_detection_image(detection_img, "diagnose_jpeg")
