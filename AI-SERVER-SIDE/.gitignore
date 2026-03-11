@@ -1,0 +1,68 @@
+# Environment variables and secrets
+.env
+.env.local
+.env*.local
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+.installed.cfg
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+logs/
+
+# Model files (keep file structure, ignore actual weights)
+models/*.pt
+models/*.pth
+
+# Uploaded images (temp)
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Test images
+tests/images/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+pip-log.txt
+pip-delete-this-directory.txt
