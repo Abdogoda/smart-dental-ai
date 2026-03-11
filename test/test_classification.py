@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "models/classification_multiple.pth")
+MODEL_PATH = os.path.join(BASE_DIR, "models/phase2_best.pth")
 
 CLASSES = {0: "Calculus", 1: "Dental Caries", 2: "Caries Gingivitis", 3: "Hypodontia", 4: "Mouth Ulcer", 5: "Tooth Discoloration"}
 

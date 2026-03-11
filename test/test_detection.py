@@ -4,7 +4,7 @@ from ultralytics import YOLO
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "models/detection.pt")
 
-CLASSES = {0: "Dental Caries", 1: "Mouth Ulcer", 2: "Tooth Discoloration", 3: "CariesGingivitis"}
+CLASSES = {0: "Dental Caries", 1: "Mouth Ulcer", 2: "Tooth Discoloration", 3: "Caries Gingivitis"}
 
 
 def load_model():
