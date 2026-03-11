@@ -104,11 +104,6 @@ def run_inference(image_path: str) -> DetectionResult:
         output = _resnet_model(tensor)
         probs  = torch.sigmoid(output[0]).cpu().numpy()  # Multi-label probabilities
     
-    # Get top detected class
-    pred_idx = int(probs.argmax())
-    conf_val = float(probs[pred_idx])
-    classification_label = CLASSIFICATION_CLASSES[pred_idx]
-    
     # Build probabilities dict
     classification_probs = {cls: round(float(prob), 4) for cls, prob in zip(CLASSIFICATION_CLASSES, probs)}
     
@@ -124,8 +119,6 @@ def run_inference(image_path: str) -> DetectionResult:
  
     return DetectionResult(
         detections=detections,
-        classification_label=classification_label,
-        classification_confidence=round(conf_val, 4),
-        classification_probabilities=classification_probs,
+        classification=classification_probs,
         detection_image=detection_image_b64,
     )

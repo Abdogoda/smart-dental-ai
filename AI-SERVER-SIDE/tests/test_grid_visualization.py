@@ -174,11 +174,12 @@ def create_grid_image(results, output_path):
             # Draw text below image
             text_y = y_start + CELL_WIDTH + 5
             
-            # Classification info
-            classification = result['detection']['classification_label']
-            conf = result['detection']['classification_confidence']
-            draw.text((x_start + 5, text_y), f"Class: {classification}", fill='black', font=font_small)
-            draw.text((x_start + 5, text_y + 15), f"Conf: {conf:.1%}", fill='black', font=font_small)
+            # Classification info - get top classification from dict
+            classification_dict = result['detection']['classification']
+            top_class = max(classification_dict.items(), key=lambda x: x[1])
+            top_class_name, top_class_conf = top_class
+            draw.text((x_start + 5, text_y), f"Top: {top_class_name[:12]}", fill='black', font=font_small)
+            draw.text((x_start + 5, text_y + 15), f"Conf: {top_class_conf:.1%}", fill='black', font=font_small)
             
             # Detection count
             detections = result['detection'].get('detections', [])
@@ -245,8 +246,9 @@ def main():
             # Display results
             detection = result['detection']
             detections = detection.get('detections', [])
-            print_info(f"  ✓ Classification: {detection['classification_label']} "
-                      f"({detection['classification_confidence']:.1%})")
+            classification_dict = detection.get('classification', {})
+            top_class = max(classification_dict.items(), key=lambda x: x[1]) if classification_dict else ('Unknown', 0)
+            print_info(f"  ✓ Top Classification: {top_class[0]} ({top_class[1]:.1%})")
             if detections:
                 print_info(f"  ✓ Detected {len(detections)} object(s):")
                 for det in detections[:3]:

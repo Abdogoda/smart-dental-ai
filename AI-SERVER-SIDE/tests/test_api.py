@@ -185,8 +185,7 @@ def test_diagnose_with_valid_image():
             
             # Validate detection structure
             detection = data['detection']
-            detection_fields = ['detections', 'classification_label', 'classification_confidence', 
-                               'classification_probabilities', 'detection_image']
+            detection_fields = ['detections', 'classification', 'detection_image']
             missing_det = [f for f in detection_fields if f not in detection]
             
             if missing_det:
@@ -200,7 +199,7 @@ def test_diagnose_with_valid_image():
                 return False
             
             # Validate classification probabilities
-            probs = detection.get('classification_probabilities', {})
+            probs = detection.get('classification', {})
             if len(probs) != 6:
                 print_fail(f"Expected 6 classification probabilities, got {len(probs)}")
                 return False
@@ -240,15 +239,9 @@ def test_diagnose_with_valid_image():
             else:
                 print_info("No objects detected")
             
-            print_info(f"Overall Classification: {detection['classification_label']} "
-                      f"({detection['classification_confidence']:.2%})")
-            print_info(f"Probabilities: {json.dumps(probs, indent=2)}")
-            
-            # Save detection image
-            img_path = save_detection_image(detection_img, "diagnose_jpeg")
-            if img_path:
-                print_info(f"Detection image saved: {img_path}")
-            return True
+            print_info(f"Classification Probabilities:")
+            for class_name, prob in probs.items():
+                print_info(f"  • {class_name}: {prob:.2%}")
             
             # Save detection image
             img_path = save_detection_image(detection_img, "diagnose_jpeg")

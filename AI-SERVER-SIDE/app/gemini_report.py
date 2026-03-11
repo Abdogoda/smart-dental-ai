@@ -18,10 +18,13 @@ def generate_report(detection: DetectionResult) -> dict:
             detected_items.append(f"{det.label} ({det.confidence:.0%})")
     detected_str = ", ".join(detected_items) if detected_items else "No significant findings"
     
+    # Format classification probabilities
+    classification_str = ", ".join([f"{cls}: {prob:.0%}" for cls, prob in detection.classification.items()])
+    
     prompt = f'''You are a dental professional. Analyze these findings and respond ONLY with valid JSON.
 
 Findings:
-- Classification: {detection.classification_label} ({detection.classification_confidence:.0%})
+- Classification Probabilities: {classification_str}
 - Detected: {detected_str}
 
 Respond with ONLY this JSON:
@@ -45,8 +48,9 @@ Respond with ONLY this JSON:
         }
     except Exception as e:
         # Graceful fallback if Gemini unavailable
+        top_classification = max(detection.classification.items(), key=lambda x: x[1])
         return {
-            'report': f'The analysis indicates {detection.classification_label} with {detection.classification_confidence:.0%} confidence. Detected conditions: {detected_str}. Recommend professional evaluation.',
+            'report': f'The analysis indicates {top_classification[0]} with {top_classification[1]:.0%} confidence. Detected conditions: {detected_str}. Recommend professional evaluation.',
             'urgency_level': 'medium',
             'action_plan': [
                 'Schedule dental consultation',

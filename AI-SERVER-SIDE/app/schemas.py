@@ -10,18 +10,16 @@ class Detection(BaseModel):
 
 class DetectionResult(BaseModel):
     detections: List[Detection]     # YOLO detected objects with confidence
-    classification_label: str        # ResNet top-1 class name
-    classification_confidence: float
-    classification_probabilities: dict  # All class probabilities {class_name: probability}
+    classification: dict  # All class probabilities {class_name: probability}
     detection_image: str  # Base64 encoded image with YOLO detections drawn
 
 
 class DiagnosisResponse(BaseModel):
     status: str = 'success'
-    detection: DetectionResult
     report: str                      # Professional clinical summary
     urgency_level: str               # 'low' | 'medium' | 'high'
     action_plan: List[str]           # Recommended steps
+    detection: DetectionResult
 
 
 class ChatRequest(BaseModel):
