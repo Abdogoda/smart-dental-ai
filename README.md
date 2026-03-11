@@ -10,7 +10,7 @@ An AI-powered dental disease detection and classification system utilizing advan
 
 Modern dental diagnostics rely heavily on manual visual analysis, which is time-consuming and subject to inter-observer variability. This system addresses these challenges through:
 
-- **Automated Classification**: Identifies 6 dental conditions with 91.06% accuracy on validation data
+- **Automated Multi-Label Classification**: Identifies multiple concurrent dental conditions with 91.06% accuracy on validation data
 - **Precise Localization**: Detects and bounds dental issues with mAP of 0.78
 - **Clinical Decision Support**: Provides evidence-based assistance to dental professionals
 - **Scalability**: Enables high-throughput analysis for dental screening programs
@@ -26,12 +26,12 @@ Modern dental diagnostics rely heavily on manual visual analysis, which is time-
 
 ### Technology Stack
 
-| Component         | Technology            | Justification                                                               |
-| ----------------- | --------------------- | --------------------------------------------------------------------------- |
-| Classification    | ResNet50              | Proven effective for image classification; optimal speed-accuracy tradeoff  |
-| Detection         | YOLOv8 Medium         | State-of-the-art real-time detection; excellent medical imaging performance |
-| Dataset Source    | Kaggle                | 15K+ professionally labeled dental images                                   |
-| Training Platform | Google Colab (T4 GPU) | Reproducible environment; accessible computational resources                |
+| Component         | Technology             | Justification                                                                    |
+| ----------------- | ---------------------- | -------------------------------------------------------------------------------- |
+| Classification    | ResNet50 (Multi-Label) | Proven effective for multi-label classification; optimal speed-accuracy tradeoff |
+| Detection         | YOLOv8 Medium          | State-of-the-art real-time detection; excellent medical imaging performance      |
+| Dataset Source    | Kaggle                 | 15K+ professionally labeled dental images                                        |
+| Training Platform | Google Colab (T4 GPU)  | Reproducible environment; accessible computational resources                     |
 
 ### Detected Dental Pathologies
 
@@ -50,11 +50,11 @@ Modern dental diagnostics rely heavily on manual visual analysis, which is time-
 
 ### Classification Model Specifications
 
-The classification model processes individual tooth images and outputs disease diagnosis with confidence scores.
+The multi-label classification model processes individual tooth images and outputs multiple disease diagnoses simultaneously with confidence scores for each condition.
 
 - **Input Specifications**: Single tooth image, 224×224 pixels, RGB
-- **Output**: Disease classification from 6 categories with per-class probability scores
-- **Clinical Application**: Rapid screening and disease identification
+- **Output**: Multi-label classification with per-class probability scores allowing multiple concurrent conditions
+- **Clinical Application**: Comprehensive screening and multi-condition identification
 - **Validation Performance**: 91.06% accuracy across all pathology classes
 
 ### Detection Model Specifications
@@ -122,7 +122,7 @@ Training was terminated at epoch 55/68 when no improvement was observed for 7 co
 
 ### Visualization
 
-![Classification Results](runs/classification-results/classification.png)
+![Classification Results](runs/classification-results/inference_batch.png)
 
 ---
 
@@ -162,7 +162,7 @@ import torch
 from PIL import Image
 
 # Load model
-model = torch.load('models/classification.pth')
+model = torch.load('models/classification_multiple.pth')
 image = Image.open('tooth.jpg')
 # ... process image
 prediction = model(image)
