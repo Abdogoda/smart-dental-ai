@@ -8,7 +8,7 @@ import os
 import base64
 from io import BytesIO
 from dotenv import load_dotenv
-from app.schemas import DetectionResult
+from app.schemas import Detection, DetectionResult
  
 load_dotenv()
  
@@ -87,6 +87,15 @@ def run_inference(image_path: str) -> DetectionResult:
  
     # 1. YOLO detection (for visualization in image, not in response)
     results = _yolo_model(image_path, conf=conf)[0]
+    
+    # Extract YOLO detections with confidence
+    detections = []
+    for box in results.boxes:
+        cls_id = int(box.cls[0])
+        confidence = float(box.conf[0])
+        # Use custom YOLO_CLASSES mapping
+        label = YOLO_CLASSES.get(cls_id, f"Class_{cls_id}")
+        detections.append(Detection(label=label, confidence=round(confidence, 4)))
  
     # 2. ResNet50 classification (multi-label with sigmoid)
     image  = Image.open(image_path).convert('RGB')
@@ -114,6 +123,7 @@ def run_inference(image_path: str) -> DetectionResult:
     detection_image_b64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
  
     return DetectionResult(
+        detections=detections,
         classification_label=classification_label,
         classification_confidence=round(conf_val, 4),
         classification_probabilities=classification_probs,

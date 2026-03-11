@@ -9,6 +9,7 @@ import json
 import sys
 import time
 import base64
+import random
 from pathlib import Path
 from io import BytesIO
 from datetime import datetime
@@ -76,7 +77,7 @@ def create_test_image(format='JPEG', size=(640, 480)):
     return buffer.getvalue()
 
 def get_test_image(format_type):
-    """Load real image from tests/images or create synthetic one"""
+    """Load random real image from tests/images or create synthetic one"""
     # Map format to file extensions
     ext_map = {
         'JPEG': ['.jpg', '.jpeg'],
@@ -87,11 +88,15 @@ def get_test_image(format_type):
     extensions = ext_map.get(format_type, [])
     
     # Try to find a real image
+    all_images = []
     for ext in extensions:
-        images = list(IMAGES_DIR.glob(f"*{ext.lower()}")) + list(IMAGES_DIR.glob(f"*{ext.upper()}"))
-        if images:
-            with open(images[0], 'rb') as f:
-                return f.read(), images[0].name
+        all_images.extend(list(IMAGES_DIR.glob(f"*{ext.lower()}")))
+        all_images.extend(list(IMAGES_DIR.glob(f"*{ext.upper()}")))
+    
+    if all_images:
+        random_image = random.choice(all_images)
+        with open(random_image, 'rb') as f:
+            return f.read(), random_image.name
     
     # Fallback to generated image
     return create_test_image(format_type), f"generated_{format_type.lower()}"
@@ -180,12 +185,18 @@ def test_diagnose_with_valid_image():
             
             # Validate detection structure
             detection = data['detection']
-            detection_fields = ['classification_label', 'classification_confidence', 
+            detection_fields = ['detections', 'classification_label', 'classification_confidence', 
                                'classification_probabilities', 'detection_image']
             missing_det = [f for f in detection_fields if f not in detection]
             
             if missing_det:
                 print_fail(f"Missing detection fields: {missing_det}")
+                return False
+            
+            # Validate detections array
+            detections = detection.get('detections', [])
+            if not isinstance(detections, list):
+                print_fail(f"Detections should be a list, got {type(detections)}")
                 return False
             
             # Validate classification probabilities
@@ -201,7 +212,17 @@ def test_diagnose_with_valid_image():
                 return False
             
             print_pass("Response valid and complete")
-            print_info(f"Classification: {detection['classification_label']} "
+            
+            # Display detections
+            detections = detection.get('detections', [])
+            if detections:
+                print_info(f"Detected {len(detections)} object(s):")
+                for det in detections:
+                    print_info(f"  • {det['label']}: {det['confidence']:.2%} confidence")
+            else:
+                print_info("No objects detected")
+            
+            print_info(f"Overall Classification: {detection['classification_label']} "
                       f"({detection['classification_confidence']:.2%})")
             print_info(f"Probabilities: {json.dumps(probs, indent=2)}")
             

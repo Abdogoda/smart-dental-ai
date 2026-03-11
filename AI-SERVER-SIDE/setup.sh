@@ -279,6 +279,19 @@ action_run_api_tests() {
     fi
 }
 
+action_run_grid_tests() {
+    print_info "Running grid visualization test (server must be running)..."
+    echo ""
+    
+    if $VENV_PYTHON tests/test_grid_visualization.py; then
+        print_success "Grid visualization test completed"
+        return 0
+    else
+        print_error "Grid visualization test failed"
+        return 1
+    fi
+}
+
 # ==============================================================================
 # MENUS
 # ==============================================================================
@@ -308,10 +321,11 @@ show_main_menu() {
     echo "  2) 📋 System Status (Check all requirements)"
     echo "  3) 🧪 Test Imports (Run import tests)"
     echo "  4) 🧪 Test API (Run comprehensive API endpoint tests)"
-    echo "  5) ▶️  Run Server (Start FastAPI backend)"
-    echo "  6) ❌ Exit"
+    echo "  5) 🎨 Test Grid (Run grid visualization test with 8 images)"
+    echo "  6) ▶️  Run Server (Start FastAPI backend)"
+    echo "  7) ❌ Exit"
     echo ""
-    echo -n "  Choose option [1-6]: "
+    echo -n "  Choose option [1-7]: "
 }
 
 # ==============================================================================
@@ -374,7 +388,7 @@ main() {
                     echo -n "Press Enter to continue..."
                     read -r
                 else
-                    print_warning "Ensure the server is running in another terminal (option 5)"
+                    print_warning "Ensure the server is running in another terminal (option 6)"
                     echo ""
                     echo -n "Press Enter to start tests..."
                     read -r
@@ -387,6 +401,27 @@ main() {
                 ;;
             
             5)
+                print_header "🎨 TESTING GRID VISUALIZATION"
+                
+                if ! check_venv; then
+                    print_error "Virtual environment not found. Run Setup first (option 1)"
+                    echo ""
+                    echo -n "Press Enter to continue..."
+                    read -r
+                else
+                    print_warning "Ensure the server is running in another terminal (option 6)"
+                    echo ""
+                    echo -n "Press Enter to start grid test..."
+                    read -r
+                    echo ""
+                    action_run_grid_tests
+                    echo ""
+                    echo -n "Press Enter to continue..."
+                    read -r
+                fi
+                ;;
+            
+            6)
                 print_header "▶️  PRE-LAUNCH CHECKS"
                 
                 # Pre-launch checks
@@ -423,7 +458,7 @@ main() {
                 fi
                 ;;
             
-            6)
+            7)
                 print_info "Exiting..."
                 exit 0
                 ;;

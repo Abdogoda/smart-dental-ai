@@ -3,7 +3,13 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
+class Detection(BaseModel):
+    label: str              # What was detected (e.g., 'Dental Caries')
+    confidence: float       # Confidence score (0-1)
+
+
 class DetectionResult(BaseModel):
+    detections: List[Detection]     # YOLO detected objects with confidence
     classification_label: str        # ResNet top-1 class name
     classification_confidence: float
     classification_probabilities: dict  # All class probabilities {class_name: probability}
