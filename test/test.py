@@ -6,7 +6,7 @@ from test_detection import load_model as load_detection_model, detect_image
 from test_classification import load_model as load_classification_model, classify_image
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VAL_IMAGES_PATH = os.path.join(BASE_DIR, "datasets/detection-dataset/images/val")
+VAL_IMAGES_PATH = os.path.join(BASE_DIR, "datasets/classification-dataset/train/Ulcer")
 OUTPUT_PATH = os.path.join(BASE_DIR, "test", "outputs")
 
 # Create output directory if it doesn't exist
