@@ -19,13 +19,6 @@ A production-ready FastAPI microservice for dental image analysis using YOLOv8 o
 4. **`POST /diagnose-batch`** - Batch processing endpoint (up to 10 images per request)
 5. **`POST /chat`** - Conversational AI for follow-up questions
 
-### Testing & Validation
-
-- Comprehensive API test suite (12 tests)
-- Grid visualization test (2×4 grid of 8 image results)
-- Support for real dental images or synthetic test images
-- Automatic output directory with detection results
-
 ### Project Structure
 
 ```
@@ -94,30 +87,6 @@ cp .env.example .env
 
 # Run server
 python -m uvicorn app.main:app --reload
-```
-
-## 📦 Installation Requirements
-
-### System Requirements
-
-- **Python**: 3.9+
-- **Memory**: 8GB+ RAM (for model loading)
-- **GPU** (optional): CUDA 11.8+ for accelerated inference
-
-### Python Dependencies
-
-```
-fastapi==0.111.0
-uvicorn==0.29.0
-PyTorch==2.3.0
-torchvision==0.18.0
-ultralytics==8.2.0  # YOLOv8
-google-generativeai==0.3.0  # Gemini
-pillow==10.3.0
-pydantic==2.7.0
-python-dotenv==1.0.1
-requests==2.31.0
-numpy<2  # For ultralytics compatibility
 ```
 
 ## 🔌 API Reference
@@ -294,75 +263,6 @@ Create a 2×4 grid showing 8 image detections with results:
 - Shows detection images + probabilities for 8 images
 - Perfect for batch analysis and presentation
 
-## 📸 Using Test Images
-
-### Option 1: Automatic (Synthetic Images)
-
-Tests generate random images automatically if no images provided.
-
-### Option 2: Real Dental Images
-
-Place your images in `tests/images/`:
-
-```
-tests/images/
-├── dental_scan_1.jpg
-├── tooth_sample.png
-└── xray.webp
-```
-
-Supported formats:
-
-- JPEG (.jpg, .jpeg)
-- PNG (.png)
-- WebP (.webp)
-
-Tests will automatically use these images for analysis.
-
-## 🐳 Docker Deployment
-
-### Build & Run with Docker Compose
-
-```bash
-docker-compose up --build
-```
-
-### Manual Docker Build
-
-```bash
-# Build image
-docker build -t dental-ai:latest .
-
-# Run container
-docker run -p 8000:8000 \
-  -e GEMINI_API_KEY="your-key-here" \
-  -v $(pwd)/models:/app/models \
-  dental-ai:latest
-```
-
-## ⚙️ Configuration
-
-### Environment Variables (`.env`)
-
-```env
-# API Configuration
-AI_HOST=0.0.0.0
-AI_PORT=8000
-
-# Model Paths
-YOLO_MODEL_PATH=models/detection.pt
-RESNET_MODEL_PATH=models/classification.pth
-
-# Gemini AI
-GEMINI_API_KEY=your-api-key-here
-GEMINI_MODEL=gemini-pro
-
-# File Upload
-UPLOAD_DIR=uploads
-MAX_SIZE_MB=10
-CONFIDENCE_THRESHOLD=0.45
-```
-
 ### Classification Classes (6 types)
 
 1. Calculus
@@ -378,56 +278,6 @@ CONFIDENCE_THRESHOLD=0.45
 2. Mouth Ulcer
 3. Tooth Discoloration
 4. Caries Gingivitis
-
-## 📊 Model Information
-
-### YOLOv8 Detection
-
-- **Input**: 640×640 image
-- **Output**: Bounding boxes with class labels & confidence
-- **Detects**: 4 dental condition types
-- **Inference Time**: ~250-300ms
-
-### ResNet50 Classification
-
-- **Input**: 224×224 image
-- **Architecture**:
-  - Backbone: ResNet50
-  - FC Layer: Linear(2048→512)→ReLU→Dropout(0.5)→Linear(512→128)→ReLU→Dropout(0.5)→Linear(128→6)
-- **Output**: Multi-label sigmoid probabilities (0-1 for each class)
-- **Inference Time**: ~100-150ms
-
-### Total Inference Time
-
-~500-600ms per image (without Gemini)
-
-## 🔐 Security Considerations
-
-- **CORS**: Currently allows all origins - restrict in production
-- **File Upload**: Size limited to 10MB, MIME type validation
-- **API Key**: Store GEMINI_API_KEY in .env, never commit to git
-- **Error Messages**: Detailed errors in development, generic in production
-- **Rate Limiting**: Consider implementing in production deployment
-
-## 📝 Logging & Debugging
-
-### Server Logs
-
-Real-time FastAPI logging shows:
-
-- Image processing pipeline
-- Model inference details
-- Error tracebacks
-
-### Output Tracking
-
-```
-tests/output/
-├── diagnose_jpeg_*.png          # Detection results from JPEG tests
-├── diagnose_png_*.png           # Detection results from PNG tests
-├── diagnose_webp_*.png          # Detection results from WEBP tests
-└── grid_visualization_*.png     # 2×4 grid of 8 images
-```
 
 ## 🚢 Production Deployment
 
@@ -447,29 +297,6 @@ gunicorn -w 4 -k uvicorn.workers.UvicornWorker \
 - Use Redis for session state
 - Deploy multiple workers
 
-## 🤝 Integration with Frontend
-
-### Handling Detection Images
-
-The API returns detection images as base64-encoded PNG:
-
-```javascript
-// Frontend code example
-const response = await fetch("/diagnose", { method: "POST", body: formData });
-const data = await response.json();
-
-// Display detection image
-const detectionImage = data.detection.detection_image;
-const imageUrl = `data:image/png;base64,${detectionImage}`;
-document.getElementById("preview").src = imageUrl;
-
-// Display classification results
-const probs = data.detection.classification_probabilities;
-Object.entries(probs).forEach(([label, prob]) => {
-  console.log(`${label}: ${(prob * 100).toFixed(1)}%`);
-});
-```
-
 ## 📚 API Documentation
 
 Interactive documentation available at:
@@ -487,71 +314,6 @@ Interactive documentation available at:
 | Gemini Report         | 1-3 seconds          |
 | Concurrent Requests   | 4-8 (depends on CPU) |
 | Memory Usage          | 2-4GB                |
-
-## 🐛 Troubleshooting
-
-### Issue: "Models not loaded"
-
-```bash
-# Check model files exist
-ls -la models/
-# Output should show:
-# - detection.pt
-# - classification.pth
-
-# If missing, copy your trained models:
-cp /path/to/detection.pt models/
-cp /path/to/classification.pth models/
-```
-
-### Issue: "NumPy compatibility"
-
-```bash
-# Already fixed in requirements.txt (numpy<2)
-pip install -r requirements.txt --force-reinstall
-```
-
-### Issue: "Gemini API not found"
-
-```bash
-# Check .env has correct GEMINI_API_KEY
-cat .env | grep GEMINI
-
-# Verify API key works:
-# https://aistudio.google.com/app/apikey
-```
-
-### Issue: Port 8000 already in use
-
-```bash
-# Use different port
-AI_PORT=8001 python -m uvicorn app.main:app
-```
-
-## 📞 Support
-
-For issues or questions:
-
-1. Check test output: `./setup.sh` → Option 4
-2. Review API docs: http://localhost:8000/docs
-3. Check error logs in server terminal
-4. Verify model files exist in `models/` directory
-
-## 📄 License
-
-This project is part of the Dental AI System. All rights reserved.
-
-## 🎯 Roadmap
-
-- [ ] WebSocket support for real-time streaming
-- [ ] Batch processing (multiple images)
-- [ ] Model fine-tuning API
-- [ ] Database integration for patient records
-- [ ] OCR for dental forms
-- [ ] Mobile app integration
-- [ ] Multi-language support
-
----
 
 **Version**: 1.0.0  
 **Last Updated**: March 2026  
