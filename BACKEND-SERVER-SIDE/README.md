@@ -11,7 +11,7 @@ Built with **Node.js**, **Express.js**, and **MongoDB**.
 backend/
 ├── models/
 │   ├── User.js          # User schema (name, email, hashed password, age, gender)
-│   └── Diagnosis.js     # Diagnosis schema (image path, AI results, urgency, etc.)
+│   └── Diagnosis.js     # Diagnosis schema (input image path, output image path, AI results, urgency, etc.)
 ├── routes/
 │   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile  |  POST /api/auth/profile/image  |  GET /api/auth/profile/image
 │   ├── diagnosis.js     # POST /api/diagnosis      |  POST /api/diagnosis/batch  |  GET /api/diagnosis/history
@@ -154,12 +154,29 @@ Authorization: Bearer <token>
 **Single diagnosis** — `multipart/form-data`:
 
 - Field name: `image` (one file, max 10 MB, jpeg/jpg/png/gif/webp)
-- Response: `{ message, diagnosis }` — result is saved to history
+- Uploaded input image is saved under `uploads/diagnosis/input/`
+- If the AI response contains an image, it is saved under `uploads/diagnosis/output/`
+- Both `inputImagePath` and `outputImagePath` are stored in MongoDB
+- Any AI base64 image returned by the AI server is replaced with the saved `/uploads/...` path in the API response
+
+Example response fields inside `diagnosis`:
+
+```json
+{
+  "imagePath": "diagnosis/input/1710000000000-123456789.jpg",
+  "inputImagePath": "diagnosis/input/1710000000000-123456789.jpg",
+  "outputImagePath": "diagnosis/output/1710000000000-123456789-1.png",
+  "inputImageUrl": "/uploads/diagnosis/input/1710000000000-123456789.jpg",
+  "outputImageUrl": "/uploads/diagnosis/output/1710000000000-123456789-1.png"
+}
+```
 
 **Batch diagnosis** — `multipart/form-data`:
 
 - Field name: `images` (up to 10 files, same type/size limits)
-- Response: `{ message, count, diagnoses[] }` — each result is saved to history
+- Each uploaded input image is saved under `uploads/diagnosis/input/`
+- Any AI-generated output image is saved under `uploads/diagnosis/output/`
+- Response: `{ message, count, diagnoses[] }` with saved input/output image paths for each diagnosis
 
 ---
 
@@ -191,6 +208,8 @@ Authorization: Bearer <token>
 ## Notes
 
 - Uploaded images are stored in the `uploads/` folder.
+- Diagnosis input images are stored in `uploads/diagnosis/input/`.
+- Diagnosis output images generated from AI responses are stored in `uploads/diagnosis/output/`.
 - The AI server URL is configured via `AI_SERVER_URL` in `.env`.
 - The backend expects the external AI server to be running at that URL.
 - Visit `GET /api/doc` for a live JSON reference of all endpoints.

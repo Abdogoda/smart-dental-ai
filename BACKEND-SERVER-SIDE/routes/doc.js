@@ -91,27 +91,60 @@ router.get('/', (req, res) => {
         method: 'POST',
         path:   '/api/diagnosis',
         auth:   true,
-        description: 'Upload one dental image and get an AI diagnosis (saved to history)',
+        description: 'Upload one dental image, save the input under uploads/diagnosis/input, save any AI-generated image under uploads/diagnosis/output, and store both paths in history',
         body: { type: 'multipart/form-data', fields: { image: 'image file (jpeg / jpg / png / gif / webp, max 10 MB)' } },
-        response: { message: 'Diagnosis completed', diagnosis: {} },
+        response: {
+          message: 'Diagnosis completed',
+          diagnosis: {
+            imagePath: 'diagnosis/input/<filename>',
+            inputImagePath: 'diagnosis/input/<filename>',
+            outputImagePath: 'diagnosis/output/<filename>',
+            inputImageUrl: '/uploads/diagnosis/input/<filename>',
+            outputImageUrl: '/uploads/diagnosis/output/<filename>',
+            detectionResults: 'Any base64 image from the AI response is replaced with a saved /uploads/... path',
+          },
+        },
       },
       {
         group:  'Diagnosis',
         method: 'POST',
         path:   '/api/diagnosis/batch',
         auth:   true,
-        description: 'Upload up to 10 images at once — each result is saved to history',
+        description: 'Upload up to 10 images at once — each input image is saved under uploads/diagnosis/input and any AI-generated image is saved under uploads/diagnosis/output',
         body: { type: 'multipart/form-data', fields: { images: 'up to 10 image files (jpeg/jpg/png/gif/webp, max 10 MB each)' } },
-        response: { message: 'Batch diagnosis completed', count: 0, diagnoses: [] },
+        response: {
+          message: 'Batch diagnosis completed',
+          count: 0,
+          diagnoses: [
+            {
+              imagePath: 'diagnosis/input/<filename>',
+              inputImagePath: 'diagnosis/input/<filename>',
+              outputImagePath: 'diagnosis/output/<filename>',
+              inputImageUrl: '/uploads/diagnosis/input/<filename>',
+              outputImageUrl: '/uploads/diagnosis/output/<filename>',
+            },
+          ],
+        },
       },
       {
         group:  'Diagnosis',
         method: 'GET',
         path:   '/api/diagnosis/history',
         auth:   true,
-        description: 'Retrieve all past diagnoses for the logged-in user (newest first)',
+        description: 'Retrieve all past diagnoses for the logged-in user with saved input/output image paths',
         body: null,
-        response: { count: 0, diagnoses: [] },
+        response: {
+          count: 0,
+          diagnoses: [
+            {
+              imagePath: 'diagnosis/input/<filename>',
+              inputImagePath: 'diagnosis/input/<filename>',
+              outputImagePath: 'diagnosis/output/<filename>',
+              inputImageUrl: '/uploads/diagnosis/input/<filename>',
+              outputImageUrl: '/uploads/diagnosis/output/<filename>',
+            },
+          ],
+        },
       },
 
       // ── Chat ──────────────────────────────────────────────────────────────

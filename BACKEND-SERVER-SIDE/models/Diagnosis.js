@@ -15,6 +15,18 @@ const diagnosisSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Relative path of the uploaded input image inside /uploads
+    inputImagePath: {
+      type: String,
+      default: '',
+    },
+
+    // Relative path of the generated output image inside /uploads
+    outputImagePath: {
+      type: String,
+      default: '',
+    },
+
     // Raw detection results returned by the AI server (array of findings, etc.)
     detectionResults: {
       type: mongoose.Schema.Types.Mixed,
