@@ -44,35 +44,27 @@ router.get('/', (req, res) => {
       },
       {
         group:  'Auth',
-        method: 'POST',
-        path:   '/api/auth/logout',
-        auth:   true,
-        description: 'Logout (client must discard the token)',
-        body: null,
-        response: { message: 'Logged out successfully' },
-      },
-      {
-        group:  'Auth',
         method: 'GET',
         path:   '/api/auth/profile',
         auth:   true,
-        description: "Get the logged-in user's profile",
+        description: "Get the logged-in user's profile (password excluded)",
         body: null,
-        response: { user: { id: '', name: '', email: '', age: '', gender: '' } },
+        response: { message: 'Profile retrieved successfully', user: { id: '', name: '', email: '', age: '', gender: '' } },
       },
       {
         group:  'Auth',
         method: 'PUT',
         path:   '/api/auth/profile',
         auth:   true,
-        description: 'Update name, age, gender, and/or password',
+        description: 'Update name, email, age, gender, and/or password',
         body: {
           name:     'string  (optional)',
+          email:    'string  (optional)',
           age:      'number  (optional)',
           gender:   '"male" | "female" | "other"  (optional)',
           password: 'string  (optional, min 6 chars)',
         },
-        response: { message: 'Profile updated successfully', user: {} },
+        response: { message: 'Profile updated successfully', user: { id: '', name: '', email: '', age: '', gender: '' } },
       },
 
       // ── Diagnosis ─────────────────────────────────────────────────────────
@@ -90,8 +82,8 @@ router.get('/', (req, res) => {
         method: 'POST',
         path:   '/api/diagnosis/batch',
         auth:   true,
-        description: 'Upload up to 10 images at once (each result saved to history)',
-        body: { type: 'multipart/form-data', fields: { images: 'up to 10 image files' } },
+        description: 'Upload up to 10 images at once — each result is saved to history',
+        body: { type: 'multipart/form-data', fields: { images: 'up to 10 image files (jpeg/jpg/png/gif/webp, max 10 MB each)' } },
         response: { message: 'Batch diagnosis completed', count: 0, diagnoses: [] },
       },
       {
@@ -116,6 +108,17 @@ router.get('/', (req, res) => {
           context:  'string  (optional — extra context for the AI)',
         },
         response: { answer: 'string', raw: {} },
+      },
+
+      // ── Doc ───────────────────────────────────────────────────────────────
+      {
+        group:  'Doc',
+        method: 'GET',
+        path:   '/api/doc',
+        auth:   false,
+        description: 'List all available API endpoints with descriptions and body shapes',
+        body: null,
+        response: { title: '', version: '', base_url: '', endpoints: [] },
       },
     ],
   };

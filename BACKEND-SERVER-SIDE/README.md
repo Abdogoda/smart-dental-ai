@@ -13,9 +13,10 @@ backend/
 │   ├── User.js          # User schema (name, email, hashed password, age, gender)
 │   └── Diagnosis.js     # Diagnosis schema (image path, AI results, urgency, etc.)
 ├── routes/
-│   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login
+│   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile
 │   ├── diagnosis.js     # POST /api/diagnosis      |  POST /api/diagnosis/batch  |  GET /api/diagnosis/history
-│   └── chat.js          # POST /api/chat
+│   ├── chat.js          # POST /api/chat
+│   └── doc.js           # GET  /api/doc
 ├── middleware/
 │   └── auth.js          # JWT verification middleware
 ├── uploads/             # Uploaded images are saved here
@@ -82,10 +83,12 @@ The server will start on `http://localhost:5000`.
 
 ### Auth
 
-| Method | Endpoint             | Description         | Auth required |
-| ------ | -------------------- | ------------------- | ------------- |
-| POST   | `/api/auth/register` | Register a new user | No            |
-| POST   | `/api/auth/login`    | Login, returns JWT  | No            |
+| Method | Endpoint             | Description                      | Auth required |
+| ------ | -------------------- | -------------------------------- | ------------- |
+| POST   | `/api/auth/register` | Register a new user account      | No            |
+| POST   | `/api/auth/login`    | Login, returns JWT token         | No            |
+| GET    | `/api/auth/profile`  | Get the logged-in user's profile | Yes           |
+| PUT    | `/api/auth/profile`  | Update profile fields            | Yes           |
 
 **Register body:**
 
@@ -108,6 +111,18 @@ The server will start on `http://localhost:5000`.
 }
 ```
 
+**Update profile body** (all fields optional):
+
+```json
+{
+  "name": "Ahmed Ali",
+  "email": "newemail@example.com",
+  "age": 26,
+  "gender": "male",
+  "password": "newpassword123"
+}
+```
+
 ---
 
 ### Diagnosis
@@ -126,11 +141,13 @@ Authorization: Bearer <token>
 
 **Single diagnosis** — `multipart/form-data`:
 
-- Field name: `image` (one file)
+- Field name: `image` (one file, max 10 MB, jpeg/jpg/png/gif/webp)
+- Response: `{ message, diagnosis }` — result is saved to history
 
 **Batch diagnosis** — `multipart/form-data`:
 
-- Field name: `images` (up to 10 files)
+- Field name: `images` (up to 10 files, same type/size limits)
+- Response: `{ message, count, diagnoses[] }` — each result is saved to history
 
 ---
 
@@ -151,8 +168,17 @@ Authorization: Bearer <token>
 
 ---
 
+### Doc
+
+| Method | Endpoint   | Description                      | Auth required |
+| ------ | ---------- | -------------------------------- | ------------- |
+| GET    | `/api/doc` | List all available API endpoints | No            |
+
+---
+
 ## Notes
 
 - Uploaded images are stored in the `uploads/` folder.
 - The AI server URL is configured via `AI_SERVER_URL` in `.env`.
 - The backend expects the external AI server to be running at that URL.
+- Visit `GET /api/doc` for a live JSON reference of all endpoints.
