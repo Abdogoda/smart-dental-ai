@@ -40,6 +40,14 @@ router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/auth/change-password  — change password
+// ─────────────────────────────────────────────────────────────────────────────
+router.put('/change-password', authMiddleware, asyncHandler(async (req, res) => {
+  const result = await authService.changePassword(req.user.id, req.body);
+  res.json(result);
+}));
+
+// ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/profile/image  — upload or replace own profile image
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/profile/image', authMiddleware, authService.profileImageUpload.single('image'), asyncHandler(async (req, res) => {

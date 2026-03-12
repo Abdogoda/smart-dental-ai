@@ -59,6 +59,18 @@ const endpointGroups = {
     },
     {
       group: 'Auth',
+      method: 'PUT',
+      path: '/api/auth/change-password',
+      auth: true,
+      description: 'Change the logged-in user\'s password by verifying the current password first',
+      body: {
+        currentPassword: 'string  (required)',
+        newPassword: 'string  (required, min 6 chars)',
+      },
+      response: { message: 'Password changed successfully' },
+    },
+    {
+      group: 'Auth',
       method: 'POST',
       path: '/api/auth/profile/image',
       auth: true,

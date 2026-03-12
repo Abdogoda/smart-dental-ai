@@ -206,6 +206,31 @@ const uploadProfileImage = async (req, userId, file) => {
   };
 };
 
+const changePassword = async (userId, { currentPassword, newPassword }) => {
+  if (!currentPassword || !newPassword) {
+    throw new ServiceError('currentPassword and newPassword are required', 400);
+  }
+
+  if (newPassword.length < 6) {
+    throw new ServiceError('New password must be at least 6 characters', 400);
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ServiceError('User not found', 404);
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw new ServiceError('Current password is incorrect', 401);
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return { message: 'Password changed successfully' };
+};
+
 const getProfileImageDownloadPath = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
@@ -230,6 +255,7 @@ module.exports = {
   login,
   getProfile,
   updateProfile,
+  changePassword,
   uploadProfileImage,
   getProfileImageDownloadPath,
 };
