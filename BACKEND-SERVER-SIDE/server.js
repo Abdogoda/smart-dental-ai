@@ -19,6 +19,7 @@ app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/diagnosis', require('./routes/diagnosis'));
 app.use('/api/chat',      require('./routes/chat'));
 app.use('/api/doc',       require('./routes/doc'));
+app.use(require('./middleware/errorHandler'));
 
 // Health check
 app.get('/', (req, res) => {
