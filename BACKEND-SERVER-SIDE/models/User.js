@@ -31,6 +31,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    phoneNumbers: {
+      type: [String],
+      default: [],
+    },
+    medicalHistories: {
+      type: [String],
+      default: [],
+    },
+    address: {
+      city: { type: String, default: '' },
+      street: { type: String, default: '' },
+      gov: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );

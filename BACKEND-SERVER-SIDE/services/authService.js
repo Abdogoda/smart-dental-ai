@@ -40,6 +40,9 @@ const formatUserResponse = (req, user) => ({
   email: user.email,
   age: user.age,
   gender: user.gender,
+  phoneNumbers: user.phoneNumbers || [],
+  medicalHistories: user.medicalHistories || [],
+  address: user.address || { city: '', street: '', gov: '' },
   profileImage: user.profileImage || '',
   profileImageUrl: buildProfileImageUrl(req, user.profileImage),
 });
@@ -73,7 +76,7 @@ const profileImageUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-const register = async ({ name, email, password, age, gender }) => {
+const register = async ({ name, email, password, age, gender, phoneNumbers, medicalHistories, address }) => {
   if (!name || !email || !password) {
     throw new ServiceError('Name, email, and password are required', 400);
   }
@@ -87,7 +90,7 @@ const register = async ({ name, email, password, age, gender }) => {
     throw new ServiceError('Email is already registered', 400);
   }
 
-  const user = new User({ name, email, password, age, gender });
+  const user = new User({ name, email, password, age, gender, phoneNumbers, medicalHistories, address });
   await user.save();
 
   return { message: 'Registration successful' };
@@ -134,7 +137,7 @@ const getProfile = async (req, userId) => {
 };
 
 const updateProfile = async (req, userId, payload) => {
-  const { name, age, email, gender, password } = payload;
+  const { name, age, email, gender, password, phoneNumbers, medicalHistories, address } = payload;
 
   const user = await User.findById(userId);
   if (!user) {
@@ -152,6 +155,15 @@ const updateProfile = async (req, userId, payload) => {
   if (age !== undefined) user.age = age;
   if (gender !== undefined) user.gender = gender;
   if (email !== undefined) user.email = email;
+  if (phoneNumbers !== undefined) user.phoneNumbers = phoneNumbers;
+  if (medicalHistories !== undefined) user.medicalHistories = medicalHistories;
+  if (address !== undefined) {
+    user.address = {
+      city: address.city ?? user.address?.city ?? '',
+      street: address.street ?? user.address?.street ?? '',
+      gov: address.gov ?? user.address?.gov ?? '',
+    };
+  }
 
   if (password) {
     if (password.length < 6) {
