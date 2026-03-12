@@ -40,7 +40,7 @@ router.get('/', (req, res) => {
           email:    'string  (required)',
           password: 'string  (required)',
         },
-        response: { message: 'Login successful', token: '<jwt>', user: { id: '', name: '', email: '', age: '', gender: '' } },
+        response: { message: 'Login successful', token: '<jwt>', user: { id: '', name: '', email: '', age: '', gender: '', profileImage: '', profileImageUrl: '' } },
       },
       {
         group:  'Auth',
@@ -49,7 +49,7 @@ router.get('/', (req, res) => {
         auth:   true,
         description: "Get the logged-in user's profile (password excluded)",
         body: null,
-        response: { message: 'Profile retrieved successfully', user: { id: '', name: '', email: '', age: '', gender: '' } },
+        response: { message: 'Profile retrieved successfully', user: { id: '', name: '', email: '', age: '', gender: '', profileImage: '', profileImageUrl: '' } },
       },
       {
         group:  'Auth',
@@ -64,7 +64,25 @@ router.get('/', (req, res) => {
           gender:   '"male" | "female" | "other"  (optional)',
           password: 'string  (optional, min 6 chars)',
         },
-        response: { message: 'Profile updated successfully', user: { id: '', name: '', email: '', age: '', gender: '' } },
+        response: { message: 'Profile updated successfully', user: { id: '', name: '', email: '', age: '', gender: '', profileImage: '', profileImageUrl: '' } },
+      },
+      {
+        group:  'Auth',
+        method: 'POST',
+        path:   '/api/auth/profile/image',
+        auth:   true,
+        description: 'Upload or replace the logged-in user\'s profile image',
+        body: { type: 'multipart/form-data', fields: { image: 'image file (jpeg/jpg/png/gif/webp, max 5 MB)' } },
+        response: { message: 'Profile image uploaded successfully', user: { id: '', name: '', email: '', age: '', gender: '', profileImage: '', profileImageUrl: '' } },
+      },
+      {
+        group:  'Auth',
+        method: 'GET',
+        path:   '/api/auth/profile/image',
+        auth:   true,
+        description: 'Download the logged-in user\'s profile image',
+        body: null,
+        response: 'Binary file download',
       },
 
       // ── Diagnosis ─────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ backend/
 │   ├── User.js          # User schema (name, email, hashed password, age, gender)
 │   └── Diagnosis.js     # Diagnosis schema (image path, AI results, urgency, etc.)
 ├── routes/
-│   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile
+│   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile  |  POST /api/auth/profile/image  |  GET /api/auth/profile/image
 │   ├── diagnosis.js     # POST /api/diagnosis      |  POST /api/diagnosis/batch  |  GET /api/diagnosis/history
 │   ├── chat.js          # POST /api/chat
 │   └── doc.js           # GET  /api/doc
@@ -83,12 +83,14 @@ The server will start on `http://localhost:5000`.
 
 ### Auth
 
-| Method | Endpoint             | Description                      | Auth required |
-| ------ | -------------------- | -------------------------------- | ------------- |
-| POST   | `/api/auth/register` | Register a new user account      | No            |
-| POST   | `/api/auth/login`    | Login, returns JWT token         | No            |
-| GET    | `/api/auth/profile`  | Get the logged-in user's profile | Yes           |
-| PUT    | `/api/auth/profile`  | Update profile fields            | Yes           |
+| Method | Endpoint                  | Description                      | Auth required |
+| ------ | ------------------------- | -------------------------------- | ------------- |
+| POST   | `/api/auth/register`      | Register a new user account      | No            |
+| POST   | `/api/auth/login`         | Login, returns JWT token         | No            |
+| GET    | `/api/auth/profile`       | Get the logged-in user's profile | Yes           |
+| PUT    | `/api/auth/profile`       | Update profile fields            | Yes           |
+| POST   | `/api/auth/profile/image` | Upload or replace profile image  | Yes           |
+| GET    | `/api/auth/profile/image` | Download profile image           | Yes           |
 
 **Register body:**
 
@@ -122,6 +124,16 @@ The server will start on `http://localhost:5000`.
   "password": "newpassword123"
 }
 ```
+
+**Upload profile image** — `multipart/form-data`:
+
+- Field name: `image` (one file, max 5 MB, jpeg/jpg/png/gif/webp)
+- Response user object includes `profileImage` and `profileImageUrl`
+
+**Download profile image**:
+
+- Send `GET /api/auth/profile/image` with the bearer token
+- Response is the binary image file if the user has uploaded one
 
 ---
 
