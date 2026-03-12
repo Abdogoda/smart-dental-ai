@@ -153,9 +153,9 @@ const parseBase64Image = (value, keyPath = '') => {
   };
 };
 
-const persistAiImages = (payload, filePrefix) => {
+const persistAiImages = (payload, outputFilename) => {
   let outputImagePath = '';
-  let imageCount = 0;
+  let outputPublicPath = null;
 
   const walk = (value, keyPath = '') => {
     if (Array.isArray(value)) {
@@ -173,19 +173,21 @@ const persistAiImages = (payload, filePrefix) => {
       return value;
     }
 
+    if (outputPublicPath) {
+      return outputPublicPath;
+    }
+
     ensureDir(diagnosisOutputDir);
-    imageCount += 1;
-    const filename = `${filePrefix}-${imageCount}${parsedImage.extension}`;
+    const filename = outputFilename;
     const storedPath = buildStoredPath('output', filename);
     const absolutePath = path.join(__dirname, '../uploads', storedPath);
 
     fs.writeFileSync(absolutePath, parsedImage.buffer);
 
-    if (!outputImagePath) {
-      outputImagePath = storedPath;
-    }
+    outputImagePath = storedPath;
+    outputPublicPath = buildPublicPath(storedPath);
 
-    return buildPublicPath(storedPath);
+    return outputPublicPath;
   };
 
   return {
@@ -241,7 +243,7 @@ const diagnosisUpload = multer({
 });
 
 const buildDiagnosisFromAi = (userId, file, aiResult) => {
-  const { sanitizedPayload, outputImagePath } = persistAiImages(aiResult, path.parse(file.filename).name);
+  const { sanitizedPayload, outputImagePath } = persistAiImages(aiResult, file.filename);
   const inputImagePath = buildStoredPath('input', file.filename);
 
   return new Diagnosis({
