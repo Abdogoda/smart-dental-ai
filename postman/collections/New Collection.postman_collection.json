@@ -1,0 +1,55 @@
+{
+  "info": {
+    "_postman_id": "df84e899-ff12-4901-b7b8-23d6ad0aae18",
+    "name": "Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Test Request",
+      "id": "a5fc2093-29c8-460c-a149-106fd1016a01",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text",
+            "uuid": "058f9d9e-2644-4ce1-ad25-02df2856f50a"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text",
+            "uuid": "9bff4b7c-bbe4-4302-a1ee-b445df411b71"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "uuid": "cd8783ba-80f6-4519-9559-43222667a104",
+              "src": [
+                "postman-cloud:///1f11e1d5-9992-4690-8129-f7f0a88f3a73",
+                "postman-cloud:///1f11e1d4-f615-4620-8158-32eaf29985a0"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "localhost:8000/diagnose-batch",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "diagnose-batch"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
