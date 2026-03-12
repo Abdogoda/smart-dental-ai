@@ -254,6 +254,37 @@ const buildDiagnosisFromAi = (userId, file, aiResult) => {
   });
 };
 
+const normalizeBatchAiResults = (rawBatchResult, files) => {
+  if (Array.isArray(rawBatchResult)) {
+    return files.map((_, i) => rawBatchResult[i] ?? {});
+  }
+
+  if (rawBatchResult && Array.isArray(rawBatchResult.results)) {
+    const results = rawBatchResult.results;
+
+    // Prefer filename-based matching to preserve the exact uploaded-file order.
+    const byFilename = new Map();
+    results.forEach((item) => {
+      const itemFilename = typeof item?.filename === 'string' ? path.basename(item.filename).toLowerCase() : '';
+      if (itemFilename && !byFilename.has(itemFilename)) {
+        byFilename.set(itemFilename, item);
+      }
+    });
+
+    return files.map((file, i) => {
+      const uploadedName = path.basename(file.originalname || '').toLowerCase();
+      if (uploadedName && byFilename.has(uploadedName)) {
+        return byFilename.get(uploadedName);
+      }
+
+      return results[i] ?? {};
+    });
+  }
+
+  // Fallback for unexpected AI response shapes.
+  return files.map((_, i) => (i === 0 ? rawBatchResult : {}));
+};
+
 const runSingleDiagnosis = async (userId, file) => {
   if (!file) {
     throw new ServiceError('Please upload an image (field name: image)', 400);
@@ -300,7 +331,7 @@ const runBatchDiagnosis = async (userId, files) => {
       timeout: 120_000,
     });
 
-    const aiResults = Array.isArray(aiResponse.data) ? aiResponse.data : [aiResponse.data];
+    const aiResults = normalizeBatchAiResults(aiResponse.data, files);
 
     const savedDiagnoses = await Promise.all(
       files.map((file, i) => {
