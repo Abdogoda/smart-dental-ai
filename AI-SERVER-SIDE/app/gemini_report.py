@@ -13,7 +13,7 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY not found in .env")
 
 client = genai.Client(api_key=api_key)
-MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
  
  
 def generate_report(detection: DetectionResult) -> dict:
@@ -44,6 +44,7 @@ Respond with ONLY this JSON:
             'action_plan': data.get('action_plan', []),
         }
     except Exception as e:
+        print(f"❌ AI generation failed: {str(e)}")
         urgency = analyze_urgency(detection)
         action_plan = get_urgency_action_plan(urgency, detection)
         top_classification = max(detection.classification.items(), key=lambda x: x[1]) if detection.classification else ('Unknown', 0)
@@ -71,7 +72,8 @@ Provide a helpful, accurate response (2-3 sentences):
     try:
         response = client.models.generate_content(model=MODEL, contents=prompt)
         return response.text.strip() if response and response.text else None
-    except Exception:
+    except Exception as e:
+        print(f"❌ Chat generation failed: {str(e)}")
         pass
     
     # Fallback keyword-based response
