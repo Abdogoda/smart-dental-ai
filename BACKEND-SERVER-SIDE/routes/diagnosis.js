@@ -61,7 +61,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
 
     // Build a multipart form to forward the image to the AI server
     const formData = new FormData();
-    formData.append('image', fs.createReadStream(req.file.path), req.file.originalname);
+    formData.append('file', fs.createReadStream(req.file.path), req.file.originalname);
 
     // Call the AI server
     const aiResponse = await axios.post(`${AI_SERVER}/diagnose`, formData, {
@@ -106,7 +106,7 @@ router.post('/batch', authMiddleware, upload.array('images', 10), async (req, re
     // Forward all images to the AI server as multipart form
     const formData = new FormData();
     req.files.forEach((file) => {
-      formData.append('images', fs.createReadStream(file.path), file.originalname);
+      formData.append('files', fs.createReadStream(file.path), file.originalname);
     });
 
     const aiResponse = await axios.post(`${AI_SERVER}/diagnose-batch`, formData, {
