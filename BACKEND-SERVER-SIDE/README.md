@@ -11,7 +11,7 @@ Built with **Node.js**, **Express.js**, and **MongoDB**.
 backend/
 ├── models/
 │   ├── User.js          # User schema (name, email, hashed password, age, gender)
-│   └── Diagnosis.js     # Diagnosis schema (input image path, output image path, AI results, urgency, etc.)
+│   └── Diagnosis.js     # Diagnosis schema (input image path, output image path, detection results)
 ├── routes/
 │   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile  |  POST /api/auth/profile/image  |  GET /api/auth/profile/image
 │   ├── diagnosis.js     # POST /api/diagnosis      |  POST /api/diagnosis/batch  |  GET /api/diagnosis/history
@@ -163,7 +163,6 @@ Example response fields inside `diagnosis`:
 
 ```json
 {
-  "imagePath": "diagnosis/input/1710000000000-123456789.jpg",
   "inputImagePath": "diagnosis/input/1710000000000-123456789.jpg",
   "outputImagePath": "diagnosis/output/1710000000000-123456789-1.png",
   "inputImageUrl": "/uploads/diagnosis/input/1710000000000-123456789.jpg",

@@ -199,12 +199,11 @@ const serializeDiagnosis = (diagnosis) => {
     ? diagnosis.toObject()
     : { ...diagnosis };
 
-  const inputImagePath = diagnosisObject.inputImagePath || diagnosisObject.imagePath || '';
+  const inputImagePath = diagnosisObject.inputImagePath || '';
   const outputImagePath = diagnosisObject.outputImagePath || '';
 
   return {
     ...diagnosisObject,
-    imagePath: inputImagePath,
     inputImagePath,
     outputImagePath,
     inputImageUrl: buildPublicPath(inputImagePath),
@@ -247,13 +246,9 @@ const buildDiagnosisFromAi = (userId, file, aiResult) => {
 
   return new Diagnosis({
     userId,
-    imagePath: inputImagePath,
     inputImagePath,
     outputImagePath,
     detectionResults: sanitizedPayload.detectionResults ?? sanitizedPayload,
-    report: sanitizedPayload.report ?? '',
-    urgencyLevel: sanitizedPayload.urgencyLevel ?? 'low',
-    actionPlan: sanitizedPayload.actionPlan ?? '',
   });
 };
 

@@ -84,7 +84,6 @@ const buildApiDocs = (baseUrl) => ({
       response: {
         message: 'Diagnosis completed',
         diagnosis: {
-          imagePath: 'diagnosis/input/<filename>',
           inputImagePath: 'diagnosis/input/<filename>',
           outputImagePath: 'diagnosis/output/<filename>',
           inputImageUrl: '/uploads/diagnosis/input/<filename>',
@@ -105,7 +104,6 @@ const buildApiDocs = (baseUrl) => ({
         count: 0,
         diagnoses: [
           {
-            imagePath: 'diagnosis/input/<filename>',
             inputImagePath: 'diagnosis/input/<filename>',
             outputImagePath: 'diagnosis/output/<filename>',
             inputImageUrl: '/uploads/diagnosis/input/<filename>',
@@ -125,7 +123,6 @@ const buildApiDocs = (baseUrl) => ({
         count: 0,
         diagnoses: [
           {
-            imagePath: 'diagnosis/input/<filename>',
             inputImagePath: 'diagnosis/input/<filename>',
             outputImagePath: 'diagnosis/output/<filename>',
             inputImageUrl: '/uploads/diagnosis/input/<filename>',
