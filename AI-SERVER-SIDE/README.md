@@ -141,8 +141,8 @@ curl -X POST "http://localhost:8000/diagnose" \
   "status": "success",
   "detection": {
     "detections": [
-      {"label": "Dental Caries", "confidence": 0.95},
-      {"label": "Mouth Ulcer", "confidence": 0.87}
+      { "label": "Dental Caries", "confidence": 0.95 },
+      { "label": "Mouth Ulcer", "confidence": 0.87 }
     ],
     "classification": {
       "Calculus": 0.0043,
