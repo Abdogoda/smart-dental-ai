@@ -1,10 +1,5 @@
-const buildApiDocs = (baseUrl) => ({
-  title: 'Smart Dental AI — API Reference',
-  version: '1.0.0',
-  base_url: baseUrl,
-  note: 'Endpoints marked with auth:true require the header  Authorization: Bearer <token>',
-
-  endpoints: [
+const endpointGroups = {
+  Auth: [
     {
       group: 'Auth',
       method: 'POST',
@@ -74,6 +69,8 @@ const buildApiDocs = (baseUrl) => ({
       body: null,
       response: 'Binary file download',
     },
+  ],
+  Diagnosis: [
     {
       group: 'Diagnosis',
       method: 'POST',
@@ -131,6 +128,8 @@ const buildApiDocs = (baseUrl) => ({
         ],
       },
     },
+  ],
+  Chat: [
     {
       group: 'Chat',
       method: 'POST',
@@ -143,6 +142,8 @@ const buildApiDocs = (baseUrl) => ({
       },
       response: { answer: 'string', raw: {} },
     },
+  ],
+  Doc: [
     {
       group: 'Doc',
       method: 'GET',
@@ -153,6 +154,14 @@ const buildApiDocs = (baseUrl) => ({
       response: { title: '', version: '', base_url: '', endpoints: [] },
     },
   ],
+};
+
+const buildApiDocs = (baseUrl) => ({
+  title: 'Smart Dental AI — API Reference',
+  version: '1.0.0',
+  base_url: baseUrl,
+  note: 'Endpoints marked with auth:true require the header  Authorization: Bearer <token>',
+  groupedEndpoints: endpointGroups,
 });
 
 module.exports = {
