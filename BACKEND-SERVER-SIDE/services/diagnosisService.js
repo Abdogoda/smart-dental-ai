@@ -354,6 +354,15 @@ const runBatchDiagnosis = async (userId, files) => {
   }
 };
 
+const getDiagnosisById = async (userId, diagnosisId) => {
+  const diagnosis = await Diagnosis.findOne({ _id: diagnosisId, userId });
+  if (!diagnosis) {
+    throw new ServiceError('Diagnosis not found', 404);
+  }
+
+  return { diagnosis: serializeDiagnosis(diagnosis) };
+};
+
 const getHistory = async (userId) => {
   const diagnoses = await Diagnosis.find({ userId }).sort({ createdAt: -1 });
 
@@ -367,5 +376,6 @@ module.exports = {
   diagnosisUpload,
   runSingleDiagnosis,
   runBatchDiagnosis,
+  getDiagnosisById,
   getHistory,
 };

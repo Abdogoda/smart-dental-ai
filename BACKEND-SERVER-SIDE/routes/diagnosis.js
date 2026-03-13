@@ -30,4 +30,12 @@ router.get('/history', authMiddleware, asyncHandler(async (req, res) => {
   res.json(result);
 }));
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/diagnosis/:id  — single diagnosis by ID for the logged-in user
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/:id', authMiddleware, asyncHandler(async (req, res) => {
+  const result = await diagnosisService.getDiagnosisById(req.user.id, req.params.id);
+  res.json(result);
+}));
+
 module.exports = router;

@@ -130,6 +130,26 @@ const endpointGroups = {
     {
       group: 'Diagnosis',
       method: 'GET',
+      path: '/api/diagnosis/:id',
+      auth: true,
+      description: 'Retrieve a single diagnosis by ID for the logged-in user, including the generated medical report',
+      body: null,
+      response: {
+        diagnosis: {
+          _id: 'string(ObjectId)',
+          userId: 'string(ObjectId)',
+          inputImagePath: 'diagnosis/input/<filename>',
+          outputImagePath: 'diagnosis/output/<filename>',
+          inputImageUrl: '/uploads/diagnosis/input/<filename>',
+          outputImageUrl: '/uploads/diagnosis/output/<filename>',
+          detectionResults: 'mixed',
+          createdAt: 'ISO date string',
+        },
+      },
+    },
+    {
+      group: 'Diagnosis',
+      method: 'GET',
       path: '/api/diagnosis/history',
       auth: true,
       description: 'Retrieve all past diagnoses for the logged-in user with saved input/output image paths',
