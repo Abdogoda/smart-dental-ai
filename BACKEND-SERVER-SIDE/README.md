@@ -170,7 +170,7 @@ Base URL:
 
 A Postman collection is provided at:
 
-- ../smart-dental-ai.json
+- `../smart-dental-ai.json`
 
 It includes all main request types with ready-to-use examples, including:
 
