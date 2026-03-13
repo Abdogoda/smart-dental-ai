@@ -58,6 +58,7 @@ AI_SERVER_URL=http://localhost:8000
 ```
 
 Notes:
+
 - JWT_SECRET is required. The server exits on startup if it is missing.
 - Optional FRONTEND_URL can be set as comma-separated values for CORS allowlist.
 
@@ -106,6 +107,7 @@ bash setup.sh
 ```
 
 Menu options:
+
 - Setup
 - System Status
 - Run Server
@@ -134,6 +136,7 @@ On Windows, run setup.sh using Git Bash or WSL.
 ## API Overview
 
 Base URL:
+
 - http://localhost:3000 (or your configured PORT)
 
 ### Auth routes
@@ -170,6 +173,7 @@ A Postman collection is provided at:
 - ../smart-dental-ai.json
 
 It includes all main request types with ready-to-use examples, including:
+
 - Auth requests
 - Diagnosis (single and batch) requests
 - Chat and sessions requests
