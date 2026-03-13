@@ -1,223 +1,186 @@
-# Smart Dental AI — Backend
+# Smart Dental AI Backend (Server Side)
 
-A simple REST API backend for the Smart Dental AI graduation project.  
-Built with **Node.js**, **Express.js**, and **MongoDB**.
+REST API backend for Smart Dental AI, built with Node.js, Express, and MongoDB.
 
----
+## Current Project Structure
 
-## Project Structure
-
-```
-backend/
-├── models/
-│   ├── User.js          # User schema (name, email, hashed password, age, gender)
-│   └── Diagnosis.js     # Diagnosis schema (input image path, output image path, detection results)
-├── routes/
-│   ├── auth.js          # POST /api/auth/register  |  POST /api/auth/login  |  GET /api/auth/profile  |  PUT /api/auth/profile  |  POST /api/auth/profile/image  |  GET /api/auth/profile/image
-│   ├── diagnosis.js     # POST /api/diagnosis      |  POST /api/diagnosis/batch  |  GET /api/diagnosis/history
-│   ├── chat.js          # POST /api/chat
-│   └── doc.js           # GET  /api/doc
-├── middleware/
-│   └── auth.js          # JWT verification middleware
-├── uploads/             # Uploaded images are saved here
-├── server.js            # Entry point
-├── .env                 # Environment variables
-└── package.json
-```
-
----
-
-## Getting Started
-
-### 0. Quick setup
-
-If you are using Git Bash, WSL, or Linux/macOS, you can run:
-
-```bash
-bash setup.sh
-```
-
-This will:
-
-- install npm dependencies
-- create the `uploads/` folder if needed
-- create `.env` from `.env.example` if `.env` does not exist
-
-### 1. Install dependencies
-
-```bash
-npm install
+```text
+BACKEND-SERVER-SIDE/
+|-- middleware/
+|   |-- asyncHandler.js
+|   |-- auth.js
+|   `-- errorHandler.js
+|-- models/
+|   |-- ChatSession.js
+|   |-- Diagnosis.js
+|   `-- User.js
+|-- routes/
+|   |-- auth.js
+|   |-- chat.js
+|   |-- diagnosis.js
+|   `-- doc.js
+|-- services/
+|   |-- authService.js
+|   |-- chatService.js
+|   |-- diagnosisService.js
+|   `-- docService.js
+|-- uploads/
+|   |-- diagnosis/
+|   |   |-- input/
+|   |   `-- output/
+|   `-- profiles/
+|-- utils/
+|   `-- ServiceError.js
+|-- .env.example
+|-- package.json
+|-- server.js
+|-- setup.sh
+`-- README.md
 ```
 
-### 2. Configure environment
+## Requirements
 
-Edit the `.env` file (already created) and set your values:
+- Node.js 18+ (recommended)
+- npm
+- MongoDB (local or remote)
+- External AI server reachable at AI_SERVER_URL
 
-```
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/smart-dental-ai
+## Environment Variables
+
+Create a .env file (or let setup.sh create it from .env.example) and configure:
+
+```env
+PORT=3000
+MONGO_URI=mongodb://127.0.0.1:27017/smart-dental-ai
 JWT_SECRET=change_this_to_a_long_random_secret_in_production
 JWT_EXPIRES_IN=7d
 AI_SERVER_URL=http://localhost:8000
 ```
 
-### 3. Start MongoDB
+Notes:
+- JWT_SECRET is required. The server exits on startup if it is missing.
+- Optional FRONTEND_URL can be set as comma-separated values for CORS allowlist.
 
-Make sure MongoDB is running locally, or update `MONGO_URI` to point to your Atlas cluster.
+## Quick Start
 
-### 4. Run the server
+1. Install dependencies:
 
 ```bash
-# Development (auto-restart on file changes)
+npm install
+```
+
+2. Prepare environment:
+
+```bash
+cp .env.example .env
+```
+
+3. Start the server:
+
+```bash
 npm run dev
-
-# Production
-npm start
 ```
 
-The server will start on `http://localhost:5000`.
+4. Health check:
 
----
+```http
+GET /
+```
 
-## API Endpoints
-
-### Auth
-
-| Method | Endpoint                  | Description                      | Auth required |
-| ------ | ------------------------- | -------------------------------- | ------------- |
-| POST   | `/api/auth/register`      | Register a new user account      | No            |
-| POST   | `/api/auth/login`         | Login, returns JWT token         | No            |
-| GET    | `/api/auth/profile`       | Get the logged-in user's profile | Yes           |
-| PUT    | `/api/auth/profile`       | Update profile fields            | Yes           |
-| POST   | `/api/auth/profile/image` | Upload or replace profile image  | Yes           |
-| GET    | `/api/auth/profile/image` | Download profile image           | Yes           |
-
-**Register body:**
+Expected response:
 
 ```json
 {
-  "name": "Ahmed Ali",
-  "email": "ahmed@example.com",
-  "password": "secret123",
-  "age": 25,
-  "gender": "male"
+  "message": "Smart Dental AI Backend is running"
 }
 ```
 
-**Login body:**
+## setup.sh Usage
 
-```json
-{
-  "email": "ahmed@example.com",
-  "password": "secret123"
-}
+The setup.sh script helps you prepare and run the backend with checks for Node, npm, project files, and MongoDB.
+
+### Run interactive menu
+
+```bash
+bash setup.sh
 ```
 
-**Update profile body** (all fields optional):
+Menu options:
+- Setup
+- System Status
+- Run Server
+- Exit
 
-```json
-{
-  "name": "Ahmed Ali",
-  "email": "newemail@example.com",
-  "age": 26,
-  "gender": "male",
-  "password": "newpassword123"
-}
+### Run direct commands
+
+```bash
+# Full setup (install deps, create uploads, create .env from .env.example if missing)
+bash setup.sh setup
+
+# Show status checks
+bash setup.sh status
+
+# Start backend server (development mode)
+bash setup.sh run
+
+# Help
+bash setup.sh --help
 ```
 
-**Upload profile image** — `multipart/form-data`:
+### Windows note
 
-- Field name: `image` (one file, max 5 MB, jpeg/jpg/png/gif/webp)
-- Response user object includes `profileImage` and `profileImageUrl`
+On Windows, run setup.sh using Git Bash or WSL.
 
-**Download profile image**:
+## API Overview
 
-- Send `GET /api/auth/profile/image` with the bearer token
-- Response is the binary image file if the user has uploaded one
+Base URL:
+- http://localhost:3000 (or your configured PORT)
 
----
+### Auth routes
 
-### Diagnosis
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/profile (auth required)
+- PUT /api/auth/profile (auth required)
+- PUT /api/auth/change-password (auth required)
+- POST /api/auth/profile/image (auth required, multipart field: image)
+- GET /api/auth/profile/image (auth required)
 
-All diagnosis endpoints require the header:
+### Diagnosis routes
 
-```
-Authorization: Bearer <token>
-```
+- POST /api/diagnosis (auth required, multipart field: image)
+- POST /api/diagnosis/batch (auth required, multipart field: images, max 10)
+- GET /api/diagnosis/history (auth required)
+- GET /api/diagnosis/:id (auth required)
 
-| Method | Endpoint                 | Description                          |
-| ------ | ------------------------ | ------------------------------------ |
-| POST   | `/api/diagnosis`         | Upload one image, get AI diagnosis   |
-| POST   | `/api/diagnosis/batch`   | Upload up to 10 images               |
-| GET    | `/api/diagnosis/history` | Get all past diagnoses for this user |
+### Chat routes
 
-**Single diagnosis** — `multipart/form-data`:
+- POST /api/chat (auth required)
+- GET /api/chat/sessions (auth required)
+- GET /api/chat/sessions/:session_id (auth required)
 
-- Field name: `image` (one file, max 10 MB, jpeg/jpg/png/gif/webp)
-- Uploaded input image is saved under `uploads/diagnosis/input/`
-- If the AI response contains an image, it is saved under `uploads/diagnosis/output/`
-- Both `inputImagePath` and `outputImagePath` are stored in MongoDB
-- Any AI base64 image returned by the AI server is replaced with the saved `/uploads/...` path in the API response
+### Docs route
 
-Example response fields inside `diagnosis`:
+- GET /api/doc
 
-```json
-{
-  "inputImagePath": "diagnosis/input/1710000000000-123456789.jpg",
-  "outputImagePath": "diagnosis/output/1710000000000-123456789-1.png",
-  "inputImageUrl": "/uploads/diagnosis/input/1710000000000-123456789.jpg",
-  "outputImageUrl": "/uploads/diagnosis/output/1710000000000-123456789-1.png"
-}
-```
+## Postman Collection
 
-**Batch diagnosis** — `multipart/form-data`:
+A Postman collection is provided at:
 
-- Field name: `images` (up to 10 files, same type/size limits)
-- Each uploaded input image is saved under `uploads/diagnosis/input/`
-- Any AI-generated output image is saved under `uploads/diagnosis/output/`
-- Response: `{ message, count, diagnoses[] }` with saved input/output image paths for each diagnosis
+- ../smart-dental-ai.json
 
----
+It includes all main request types with ready-to-use examples, including:
+- Auth requests
+- Diagnosis (single and batch) requests
+- Chat and sessions requests
+- Documentation endpoint request
 
-### Chat
-
-| Method | Endpoint    | Description                                 | Auth required |
-| ------ | ----------- | ------------------------------------------- | ------------- |
-| POST   | `/api/chat` | Ask the AI and save/continue a chat session | Yes           |
-
-**Chat body:**
-
-```json
-{
-  "question": "What does urgency level high mean?",
-  "context": "Optional extra context for direct chat",
-  "diagnosis_id": "Optional diagnosis ObjectId",
-  "session_id": "Optional chat session ObjectId"
-}
-```
-
-Chat behavior:
-
-- If `diagnosis_id` is provided, the diagnosis report is used as AI context.
-- If `session_id` is provided, chat continues in the same session.
-- If no `diagnosis_id` is provided, the chat works directly using `context` (or a default dental-assistant context).
-- Response includes `session_id`, `diagnosis_id`, `last_active`, `answer`, and `raw`.
-
----
-
-### Doc
-
-| Method | Endpoint   | Description                      | Auth required |
-| ------ | ---------- | -------------------------------- | ------------- |
-| GET    | `/api/doc` | List all available API endpoints | No            |
-
----
+Import this file into Postman to test the API quickly.
 
 ## Notes
 
-- Uploaded images are stored in the `uploads/` folder.
-- Diagnosis input images are stored in `uploads/diagnosis/input/`.
-- Diagnosis output images generated from AI responses are stored in `uploads/diagnosis/output/`.
-- The AI server URL is configured via `AI_SERVER_URL` in `.env`.
-- The backend expects the external AI server to be running at that URL.
-- Visit `GET /api/doc` for a live JSON reference of all endpoints.
+- Uploaded files are served from /uploads.
+- Diagnosis input images are saved under uploads/diagnosis/input.
+- Diagnosis output images are saved under uploads/diagnosis/output.
+- Profile images are saved under uploads/profiles.
+- You can also inspect endpoint metadata at GET /api/doc.
