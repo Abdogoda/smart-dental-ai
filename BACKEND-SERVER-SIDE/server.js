@@ -4,10 +4,21 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+// ── Startup guards ──────────────────────────────────────────────────────────
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set.');
+  process.exit(1);
+}
+
 const app = express();
 
 // ── Middleware ───────────────────────────────────────────────────────────────
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map((u) => u.trim()) : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
