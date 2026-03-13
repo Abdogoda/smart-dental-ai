@@ -1,320 +1,180 @@
-# 🏥 Dental AI Backend - FastAPI Microservice
+# Dental AI Backend (FastAPI)
 
-A production-ready FastAPI microservice for dental image analysis using YOLOv8 object detection, ResNet50 classification, and Google Gemini AI for medical report generation.
+Backend service for dental image analysis using YOLOv8 detection, ResNet50 classification, and Gemini-generated report text.
 
-## 📋 Features
+## Features
 
-### Core AI/ML Capabilities
+- YOLOv8 object detection with bounding boxes
+- ResNet50 multi-label classification (6 classes)
+- AI report generation and follow-up chat
+- Single-image and batch diagnosis endpoints
+- Base64-encoded annotated detection image in API response
 
-- **YOLOv8 Detection**: Detects dental conditions with bounding boxes (4 disease types)
-- **ResNet50 Classification**: Multi-label classification with sigmoid activation (6 dental conditions)
-- **Gemini 1.5 Integration**: Generates natural language medical reports and conversational AI
-- **Base64 Image Output**: Detection visualizations encoded for easy frontend integration
+## Project Structure
 
-### API Endpoints
-
-1. **`GET /`** - Redirects to interactive API documentation
-2. **`GET /docs`** - Swagger UI for API exploration
-3. **`POST /diagnose`** - Single image diagnosis endpoint with AI analysis
-4. **`POST /diagnose-batch`** - Batch processing endpoint (up to 10 images per request)
-5. **`POST /chat`** - Conversational AI for follow-up questions
-
-### Project Structure
-
-```
+```text
 AI-SERVER-SIDE/
-├── app/
-│   ├── main.py                 # FastAPI application & endpoints
-│   ├── inference.py            # YOLO + ResNet50 inference pipeline
-│   ├── gemini_report.py        # Gemini AI integration
-│   └── schemas.py              # Pydantic request/response models
-├── models/
-│   ├── detection.pt            # YOLOv8 model (place your model here)
-│   └── classification.pth      # ResNet50 checkpoint (place your model here)
-├── tests/
-│   ├── test_api.py             # 12-test automated API test suite
-│   ├── images/                 # Place test images here
-│   └── output/                 # Detection results & grids saved here
-├── uploads/                    # Temporary image uploads (auto-cleaned)
-├── setup.sh                    # Interactive launcher & management tool
-├── requirements.txt            # Python dependencies
-├── .env                        # Configuration (copy from .env.example)
-├── Dockerfile                  # Docker containerization
-├── docker-compose.yml          # Multi-container orchestration
-└── README.md                   # This file
+|- app/
+|  |- main.py
+|  |- inference.py
+|  |- gemini_report.py
+|  |- urgency_analyzer.py
+|  `- schemas.py
+|- models/
+|  |- detection.pt
+|  `- classification.pth
+|- tests/
+|  |- test_api.py
+|  |- test_grid_visualization.py
+|  |- images/
+|  `- output/
+|- uploads/
+|- run.py
+|- setup.sh
+|- requirements.txt
+|- .env
+|- .env.example
+`- README.md
 ```
 
-## 🚀 Quick Start
+## Requirements
 
-### Option 1: Interactive Setup (Recommended)
+- Python 3.9+
+- Model files:
+  - `models/detection.pt`
+  - `models/classification.pth`
+- `.env` file configured (at minimum `GEMINI_API_KEY`)
+
+Copy and edit environment config:
 
 ```bash
-# Clone/navigate to repository
-cd AI-SERVER-SIDE
+cp .env.example .env
+# then edit .env and set GEMINI_API_KEY to your real key
+```
 
-# Run interactive launcher
+## Setup and Run with setup.sh (Recommended)
+
+The project includes `setup.sh` as the main launcher for setup, health checks, tests, and server start.
+
+Run it:
+
+```bash
 chmod +x setup.sh
 ./setup.sh
-
-# Menu options:
-# 1) 🔧 Setup              - Create venv & install dependencies
-# 2) 📋 System Status      - Check all requirements
-# 3) 🧪 Test Imports       - Verify imports work
-# 4) 🧪 Test API          - Run 12 automated tests
-# 5) ▶️  Run Server        - Start FastAPI backend
-# 6) ❌ Exit
 ```
 
-### Option 2: Manual Setup
+Interactive menu options:
+
+1. Setup (create venv and install dependencies)
+2. System Status (checks Python, venv, deps, models, .env)
+3. Test Imports
+4. Test API (requires server running)
+5. Test Grid (requires server running)
+6. Run Server
+7. Exit
+
+Non-interactive commands:
 
 ```bash
-# Create virtual environment
+./setup.sh status
+./setup.sh --help
+```
+
+## Manual Setup (Alternative)
+
+```bash
 python -m venv venv
-source venv/Scripts/activate  # Windows
-# or
-source venv/bin/activate      # macOS/Linux
 
-# Install dependencies
+# Windows (Git Bash)
+source venv/Scripts/activate
+
+# macOS/Linux
+# source venv/bin/activate
+
 pip install -r requirements.txt
-
-# Configure environment
 cp .env.example .env
-# Edit .env with your GEMINI_API_KEY
+# edit .env and set GEMINI_API_KEY
 
-# Add your models
-# Place detection.pt in models/
-# Place classification.pth in models/
-
-# Run server
-python -m uvicorn app.main:app --reload
+python run.py
 ```
 
-## 🔌 API Reference
+Server default URL: `http://127.0.0.1:8000` (or `http://localhost:8000`).
 
-### POST /diagnose
+## API Endpoints
 
-**Analyze single dental image and return detection + classification + report**
+- `GET /` -> redirects to `/docs`
+- `POST /diagnose` -> single image diagnosis
+- `POST /diagnose-batch` -> up to 10 images
+- `POST /chat` -> follow-up Q&A with context
 
-**Request:**
+Swagger docs: `http://127.0.0.1:8000/docs`
+
+## Postman Collection
+
+The Postman collection is located at:
+
+`../smart-dental-ai.json`
+
+It contains all request types with ready-to-use examples, including:
+
+- Health/docs checks
+- `POST /diagnose` sample multipart image request
+- `POST /diagnose-batch` sample multi-file request
+- `POST /chat` sample JSON body request
+- Common validation/error scenarios
+
+How to use:
+
+1. Open Postman -> Import.
+2. Select file `../smart-dental-ai.json`.
+3. Start the API server (`./setup.sh` -> option 6, or `python run.py`).
+4. Run requests from the collection examples.
+
+## Quick cURL Examples
+
+Single diagnosis:
 
 ```bash
-curl -X POST "http://localhost:8000/diagnose" \
+curl -X POST "http://127.0.0.1:8000/diagnose" \
   -H "accept: application/json" \
-  -F "file=@dental_image.jpg"
+  -F "file=@tests/images/example.jpg"
 ```
 
-**Response:**
-
-```json
-{
-  "status": "success",
-  "detection": {
-    "detections": [
-      { "label": "Dental Caries", "confidence": 0.95 },
-      { "label": "Mouth Ulcer", "confidence": 0.87 }
-    ],
-    "classification": {
-      "Calculus": 0.0043,
-      "Dental Caries": 0.0999,
-      "Tooth Discoloration": 0.8765,
-      "Caries Gingivitis": 0.0087,
-      "Hypodontia": 0.0001,
-      "Mouth Ulcer": 0.0105
-    },
-    "detection_image": "iVBORw0KGgoAAAANS..." // Base64 PNG with YOLO detections
-  },
-  "report": "The patient shows significant signs of tooth discoloration with associated gingival inflammation...",
-  "urgency_level": "medium",
-  "action_plan": [
-    "Schedule professional cleaning",
-    "Discuss whitening options",
-    "Maintain daily oral hygiene"
-  ]
-}
-```
-
-### POST /diagnose-batch
-
-**Analyze multiple dental images at once (up to 10 per request)**
-
-**Request:**
+Batch diagnosis:
 
 ```bash
-curl -X POST "http://localhost:8000/diagnose-batch" \
+curl -X POST "http://127.0.0.1:8000/diagnose-batch" \
   -H "accept: application/json" \
-  -F "files=@image1.jpg" \
-  -F "files=@image2.jpg" \
-  -F "files=@image3.jpg"
+  -F "files=@tests/images/img1.jpg" \
+  -F "files=@tests/images/img2.jpg"
 ```
 
-**Response:**
-
-```json
-{
-  "status": "success",
-  "count": 3,
-  "results": [
-    {
-      "filename": "image1.jpg",
-      "detection": {
-        "detections": [...],
-        "classification": {...},
-        "detection_image": "iVBORw0KGgo..."
-      },
-      "report": "Patient shows moderate discoloration...",
-      "urgency_level": "low",
-      "action_plan": [...]
-    },
-    {
-      "filename": "image2.jpg",
-      "detection": {...},
-      "report": "Significant decay detected...",
-      "urgency_level": "high",
-      "action_plan": [...]
-    },
-    {
-      "filename": "image3.jpg",
-      "detection": {...},
-      "report": "Minor plaque buildup...",
-      "urgency_level": "medium",
-      "action_plan": [...]
-    }
-  ]
-}
-```
-
-### POST /chat
-
-**Ask follow-up questions about diagnosis**
-
-**Request:**
+Chat request:
 
 ```bash
-curl -X POST "http://localhost:8000/chat" \
+curl -X POST "http://127.0.0.1:8000/chat" \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "What should I do about the discoloration?",
-    "context": "The patient shows significant signs of tooth discoloration..."
+    "question": "What should I do next?",
+    "context": "Patient shows mild discoloration and gingival inflammation."
   }'
 ```
 
-**Response:**
+## Testing
 
-```json
-{
-  "answer": "Professional whitening treatments are available through your dentist..."
-}
-```
+Run from launcher:
 
-## 🧪 Testing
+- API tests: `./setup.sh` -> option 4
+- Grid visualization test: `./setup.sh` -> option 5
 
-### Run All API Tests
+Or directly:
 
 ```bash
-./setup.sh  # Option 4
+python tests/test_api.py
+python tests/test_grid_visualization.py
 ```
 
-Tests validate:
+## Version
 
-- ✅ Server connectivity
-- ✅ Root endpoint redirection
-- ✅ Single image analysis (/diagnose)
-- ✅ **Batch image processing (/diagnose-batch)** - NEW!
-- ✅ JPEG, PNG, WEBP image processing
-- ✅ Invalid MIME type rejection
-- ✅ File size validation
-- ✅ Missing field handling
-- ✅ Chat endpoint functionality
-- ✅ Error handling & fallbacks
-- ✅ Response structure completeness
-- ✅ Classification probabilities format
-
-**Test Output:**
-
-```
-======================================================================
-🏥 DENTAL AI API TEST SUITE
-======================================================================
-[Test 1] Server connectivity... ✓ PASS
-[Test 2] GET / (root endpoint)... ✓ PASS
-[Test 3] GET /docs (API documentation)... ✓ PASS
-...
-[Test 12] POST /chat with missing fields... ✓ PASS
-
-📊 TEST RESULTS
-  Total Tests: 12
-  Passed: 12
-  Failed: 0
-  Success Rate: 100.0%
-  ✓ ALL TESTS PASSED!
-```
-
-### Grid Visualization Test
-
-Create a 2×4 grid showing 8 image detections with results:
-
-```bash
-./setup.sh  # Option 5
-```
-
-**Output:**
-
-- `tests/output/grid_visualization_YYYYMMDD_HHMMSS.png`
-- Shows detection images + probabilities for 8 images
-- Perfect for batch analysis and presentation
-
-### Classification Classes (6 types)
-
-1. Calculus
-2. Dental Caries
-3. Tooth Discoloration
-4. Caries Gingivitis
-5. Hypodontia
-6. Mouth Ulcer
-
-### Detection Classes (4 types)
-
-1. Dental Caries
-2. Mouth Ulcer
-3. Tooth Discoloration
-4. Caries Gingivitis
-
-## 🚢 Production Deployment
-
-### Recommended Setup
-
-```bash
-# Use Gunicorn for production
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker \
-  -b 0.0.0.0:8000 app.main:app
-```
-
-### Performance Optimization
-
-- Enable GPU (if available)
-- Use model quantization
-- Implement request caching
-- Use Redis for session state
-- Deploy multiple workers
-
-## 📚 API Documentation
-
-Interactive documentation available at:
-
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-## ⚡ Performance Metrics
-
-| Metric                | Value                |
-| --------------------- | -------------------- |
-| Image Processing      | 500-600ms            |
-| YOLO Detection        | 250-300ms            |
-| ResNet Classification | 100-150ms            |
-| Gemini Report         | 1-3 seconds          |
-| Concurrent Requests   | 4-8 (depends on CPU) |
-| Memory Usage          | 2-4GB                |
-
-**Version**: 1.0.0  
-**Last Updated**: March 2026  
-**Status**: Production Ready ✅
+- Version: 1.0.0
+- Last updated: March 13, 2026
