@@ -181,18 +181,27 @@ Example response fields inside `diagnosis`:
 
 ### Chat
 
-| Method | Endpoint    | Description           | Auth required |
-| ------ | ----------- | --------------------- | ------------- |
-| POST   | `/api/chat` | Ask the AI a question | Yes           |
+| Method | Endpoint    | Description                                 | Auth required |
+| ------ | ----------- | ------------------------------------------- | ------------- |
+| POST   | `/api/chat` | Ask the AI and save/continue a chat session | Yes           |
 
 **Chat body:**
 
 ```json
 {
   "question": "What does urgency level high mean?",
-  "context": "The patient has cavity detected in molar tooth."
+  "context": "Optional extra context for direct chat",
+  "diagnosis_id": "Optional diagnosis ObjectId",
+  "session_id": "Optional chat session ObjectId"
 }
 ```
+
+Chat behavior:
+
+- If `diagnosis_id` is provided, the diagnosis report is used as AI context.
+- If `session_id` is provided, chat continues in the same session.
+- If no `diagnosis_id` is provided, the chat works directly using `context` (or a default dental-assistant context).
+- Response includes `session_id`, `diagnosis_id`, `last_active`, `answer`, and `raw`.
 
 ---
 
