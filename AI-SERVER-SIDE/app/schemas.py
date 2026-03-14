@@ -42,4 +42,5 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    ai_available: bool = True
     answer: str

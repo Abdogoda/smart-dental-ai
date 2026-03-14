@@ -146,8 +146,11 @@ async def diagnose_batch(files: List[UploadFile] = File(...)):
 @app.post('/chat', response_model=ChatResponse)
 async def chat(body: ChatRequest):
     try:
-        answer = chat_with_context(body.question, body.context)
-        return ChatResponse(answer=answer)
+        chat_result = chat_with_context(body.question, body.context)
+        return ChatResponse(
+            ai_available=chat_result.get('ai_available', False),
+            answer=chat_result.get('answer', 'AI service is not available right now.'),
+        )
     except HTTPException:
         raise
     except Exception as e:

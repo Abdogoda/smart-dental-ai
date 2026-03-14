@@ -55,40 +55,36 @@ Respond with ONLY this JSON:
         }
  
  
-def chat_with_context(question: str, context: str) -> str:
-    prompt = f'''You are a professional dental consultant AI assistant.
+def chat_with_context(question: str, context: str) -> dict:
+    prompt = f'''STRICT INSTRUCTIONS (follow exactly):
+- You are a dental assistant in an ongoing conversation.
+- The patient ALREADY KNOWS their diagnosis. Do NOT restate, summarize, or reference it unless they explicitly ask.
+- Answer ONLY what the patient is asking in their latest message.
+- If the patient sends a short social message (e.g. "ok", "thanks", "great"), reply briefly and politely - nothing medical.
+- Keep answers concise and conversational.
 
-Dental Report:
+Hidden Context (use only if needed; do not mention unless asked):
 {context}
 
-Patient Question: {question}
+Patient Message:
+{question}
 
-Provide a helpful, accurate response (2-3 sentences):
-- What condition they have
-- Why it occurred
-- What they should do
-- When to see a dentist'''
+Assistant Reply:'''
     
     try:
         response = client.models.generate_content(model=MODEL, contents=prompt)
-        return response.text.strip() if response and response.text else None
+        if response and response.text and response.text.strip():
+            return {
+                'ai_available': True,
+                'answer': response.text.strip(),
+            }
+        return {
+            'ai_available': False,
+            'answer': 'AI service is not available right now.',
+        }
     except Exception as e:
         print(f"❌ Chat generation failed: {str(e)}")
-        pass
-    
-    # Fallback keyword-based response
-    keywords = {
-        'discoloration': 'Professional whitening can help. See your dentist for in-office or at-home options.',
-        'caries': 'Dental cavities require professional treatment. Schedule an appointment soon.',
-        'gingivitis': 'Gum inflammation often improves with brushing, flossing, and antimicrobial mouthwash daily.',
-        'calculus': 'Tartar requires professional scaling. Regular cleanings prevent buildup.',
-        'ulcer': 'Most mouth ulcers heal in 1-2 weeks. Avoid spicy foods and use a soft brush.',
-        'urgent': 'This requires prompt attention. Schedule an appointment within 24-48 hours.',
-        'high': 'This requires soon attention from your dentist.',
-    }
-    
-    for keyword, msg in keywords.items():
-        if keyword.lower() in context.lower() or keyword.lower() in question.lower():
-            return msg
-    
-    return 'Your dentist will provide personalized recommendations. Maintain good oral hygiene with regular brushing and flossing.'
+        return {
+            'ai_available': False,
+            'answer': 'AI service is not available right now.',
+        }
