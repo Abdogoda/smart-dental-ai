@@ -45,9 +45,6 @@ wheels/
 *.log
 logs/
 
-# Model files (keep file structure, ignore actual weights)
-models/*.pt
-models/*.pth
 
 # Uploaded images (temp)
 uploads/
