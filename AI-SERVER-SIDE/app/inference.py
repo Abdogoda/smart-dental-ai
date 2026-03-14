@@ -3,7 +3,7 @@ import torch
 import torchvision.transforms as transforms
 from torchvision import models
 from ultralytics import YOLO
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import os
 import base64
 from io import BytesIO
@@ -77,6 +77,40 @@ TRANSFORM = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406],
                          [0.229, 0.224, 0.225]),
 ])
+
+
+def _append_classification_text(image: Image.Image, classification_probs: dict) -> Image.Image:
+    """Append a text area below the detection image with top-3 class probabilities."""
+    top3 = sorted(classification_probs.items(), key=lambda item: item[1], reverse=True)[:3]
+
+    line_texts = [f'{idx}. {label}: {prob * 100:.2f}%' for idx, (label, prob) in enumerate(top3, start=1)]
+
+    font = ImageFont.load_default()
+    padding_x = 12
+    padding_y = 8
+    line_gap = 4
+
+    # Use a temporary drawing context to measure text height.
+    measurement_canvas = Image.new('RGB', (1, 1), 'white')
+    measurement_draw = ImageDraw.Draw(measurement_canvas)
+
+    line_heights = [measurement_draw.textbbox((0, 0), text, font=font)[3] for text in line_texts]
+
+    text_area_height = padding_y * 2 + sum(line_heights) + line_gap * (len(line_texts) - 1)
+    combined_height = image.height + text_area_height
+
+    combined_image = Image.new('RGB', (image.width, combined_height), color='white')
+    combined_image.paste(image, (0, 0))
+
+    draw = ImageDraw.Draw(combined_image)
+    draw.rectangle([(0, image.height), (image.width, combined_height)], fill='white')
+
+    y = image.height + padding_y
+    for text, h in zip(line_texts, line_heights):
+        draw.text((padding_x, y), text, fill='black', font=font)
+        y += h + line_gap
+
+    return combined_image
  
  
 def run_inference(image_path: str) -> DetectionResult:
@@ -107,9 +141,10 @@ def run_inference(image_path: str) -> DetectionResult:
     # Build probabilities dict
     classification_probs = {cls: round(float(prob), 4) for cls, prob in zip(CLASSIFICATION_CLASSES, probs)}
     
-    # 3. Generate and encode detection image from YOLO
+    # 3. Generate detection image and append top-3 classification probabilities
     detection_img_array = results.plot()  # YOLO returns annotated image as numpy array
     detection_img = Image.fromarray(detection_img_array)
+    detection_img = _append_classification_text(detection_img, classification_probs)
     
     # Encode to base64
     img_buffer = BytesIO()
