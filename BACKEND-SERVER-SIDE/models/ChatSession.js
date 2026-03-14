@@ -22,25 +22,20 @@ const chatMessageSchema = new mongoose.Schema(
 
 const chatSessionSchema = new mongoose.Schema(
   {
-    message: {
+    diagnosis_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Diagnosis',
+      required: true,
+      unique: true,
+      index: true,
+    },
+    messages: {
       type: [chatMessageSchema],
       default: [],
     },
     last_active: {
       type: Date,
       default: Date.now,
-      index: true,
-    },
-    patient_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Patient',
-      required: true,
-      index: true,
-    },
-    diagnosis_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Diagnosis',
-      default: null,
       index: true,
     },
   },
@@ -50,6 +45,6 @@ const chatSessionSchema = new mongoose.Schema(
   }
 );
 
-chatSessionSchema.index({ patient_id: 1, last_active: -1 });
+chatSessionSchema.index({ diagnosis_id: 1, last_active: -1 });
 
 module.exports = mongoose.model('ChatSession', chatSessionSchema);

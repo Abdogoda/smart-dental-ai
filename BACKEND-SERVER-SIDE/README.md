@@ -158,9 +158,9 @@ Base URL:
 
 ### Chat routes
 
-- POST /api/chat (auth required)
-- GET /api/chat/sessions (auth required)
-- GET /api/chat/sessions/:session_id (auth required)
+- POST /api/chat/diagnosis/:diagnosis_id/ask (auth required)
+- GET /api/chat/all (auth required)
+- GET /api/chat/diagnosis/:diagnosis_id/messages (auth required)
 
 ### Docs route
 

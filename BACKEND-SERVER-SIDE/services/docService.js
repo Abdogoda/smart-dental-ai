@@ -171,18 +171,14 @@ const endpointGroups = {
     {
       group: 'Chat',
       method: 'POST',
-      path: '/api/chat',
+      path: '/api/chat/:diagnosis_id',
       auth: true,
-      description: 'Ask the AI and persist the conversation in a ChatSession. You can continue via session_id or bind the chat to a diagnosis via diagnosis_id.',
+      description: 'Ask the AI using a diagnosis-bound chat session. Chat is unavailable without diagnosis context.',
       body: {
         question: 'string  (required)',
-        context: 'string  (optional — additional context for direct chat)',
-        diagnosis_id: 'string(ObjectId)  (optional — use diagnosis report as context)',
-        session_id: 'string(ObjectId)  (optional — continue an existing chat session)',
       },
       response: {
-        session_id: 'string(ObjectId)',
-        diagnosis_id: 'string(ObjectId) | null',
+        diagnosis_id: 'string(ObjectId)',
         last_active: 'ISO date string',
         answer: 'string',
         raw: {},
@@ -191,18 +187,17 @@ const endpointGroups = {
     {
       group: 'Chat',
       method: 'GET',
-      path: '/api/chat/sessions',
+      path: '/api/chat/all',
       auth: true,
-      description: 'Return all chat sessions for the logged-in patient, including stored question/answer messages.',
+      description: 'Return all diagnosis-bound chats for the logged-in patient.',
       body: null,
       response: {
         count: 0,
-        sessions: [
+        chats: [
           {
             _id: 'string(ObjectId)',
-            patient_id: 'string(ObjectId)',
-            diagnosis_id: 'string(ObjectId) | null',
-            message: [{ question: 'string', answer: 'string', created_at: 'ISO date string' }],
+            diagnosis_id: 'string(ObjectId)',
+            messages: [{ question: 'string', answer: 'string', created_at: 'ISO date string' }],
             last_active: 'ISO date string',
           },
         ],
@@ -211,18 +206,13 @@ const endpointGroups = {
     {
       group: 'Chat',
       method: 'GET',
-      path: '/api/chat/sessions/:session_id',
+      path: '/api/chat/:diagnosis_id',
       auth: true,
-      description: 'Return one chat session by id for the logged-in patient, including stored question/answer messages.',
+      description: 'Return chat messages for one diagnosis belonging to the logged-in patient.',
       body: null,
       response: {
-        session: {
-          _id: 'string(ObjectId)',
-          patient_id: 'string(ObjectId)',
-          diagnosis_id: 'string(ObjectId) | null',
-          message: [{ question: 'string', answer: 'string', created_at: 'ISO date string' }],
-          last_active: 'ISO date string',
-        },
+        diagnosis_id: 'string(ObjectId)',
+        messages: [{ question: 'string', answer: 'string', created_at: 'ISO date string' }],
       },
     },
   ],
