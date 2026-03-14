@@ -3,17 +3,53 @@ import os
 import json
 import re
 from dotenv import load_dotenv
-from google import genai
 from app.schemas import DetectionResult
 from app.urgency_analyzer import analyze_urgency, get_urgency_action_plan
+
+HAS_NEW_GENAI = False
+HAS_LEGACY_GENAI = False
+
+try:
+    from google import genai as new_genai
+    HAS_NEW_GENAI = True
+except Exception:
+    new_genai = None
+
+try:
+    import google.generativeai as legacy_genai
+    HAS_LEGACY_GENAI = True
+except Exception:
+    legacy_genai = None
 
 load_dotenv()
 api_key = os.getenv('GEMINI_API_KEY')
 if not api_key:
     raise ValueError("GEMINI_API_KEY not found in .env")
 
-client = genai.Client(api_key=api_key)
 MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+
+if HAS_NEW_GENAI:
+    client = new_genai.Client(api_key=api_key)
+elif HAS_LEGACY_GENAI:
+    legacy_genai.configure(api_key=api_key)
+    client = None
+else:
+    raise ImportError(
+        "No Gemini SDK available. Install either 'google-genai' or 'google-generativeai'."
+    )
+
+
+def _generate_content_text(prompt: str) -> str:
+    if HAS_NEW_GENAI and client is not None:
+        response = client.models.generate_content(model=MODEL, contents=prompt)
+        return (response.text or "").strip()
+
+    if HAS_LEGACY_GENAI:
+        model = legacy_genai.GenerativeModel(MODEL)
+        response = model.generate_content(prompt)
+        return (response.text or "").strip()
+
+    return ""
  
  
 def generate_report(detection: DetectionResult) -> dict:
@@ -35,8 +71,8 @@ Respond with ONLY this JSON:
 }}'''
     
     try:
-        response = client.models.generate_content(model=MODEL, contents=prompt)
-        raw = re.sub(r'^```json\s*|^```\s*|\s*```$', '', response.text.strip(), flags=re.MULTILINE).strip()
+        generated_text = _generate_content_text(prompt)
+        raw = re.sub(r'^```json\s*|^```\s*|\s*```$', '', generated_text, flags=re.MULTILINE).strip()
         data = json.loads(raw)
         return {
             'report': data.get('report', ''),
@@ -72,11 +108,11 @@ Patient Message:
 Assistant Reply:'''
     
     try:
-        response = client.models.generate_content(model=MODEL, contents=prompt)
-        if response and response.text and response.text.strip():
+        generated_text = _generate_content_text(prompt)
+        if generated_text:
             return {
                 'ai_available': True,
-                'answer': response.text.strip(),
+                'answer': generated_text,
             }
         return {
             'ai_available': False,

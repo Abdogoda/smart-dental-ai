@@ -138,6 +138,18 @@ check_env() {
     return 0
 }
 
+check_server_running() {
+    if [ -z "$VENV_PYTHON" ] || [ ! -f "$VENV_PYTHON" ]; then
+        return 1
+    fi
+
+    if $VENV_PYTHON -c "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3); sys.exit(0)" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    return 1
+}
+
 action_create_venv() {
     print_info "Creating virtual environment..."
     if ! $PYTHON_CMD -m venv venv; then
@@ -268,7 +280,15 @@ main() {
                 if ! check_venv; then
                     print_error "Virtual environment not found. Run Setup first (option 1)."
                 else
-                    action_run_api_tests
+                    if check_server_running; then
+                        action_run_api_tests
+                    else
+                        print_error "Server is not running at http://127.0.0.1:8000"
+                        print_info "Start the server first (option 4), then run Test API again."
+                        print_info "Pre-checking likely blockers for server startup:"
+                        check_models || true
+                        check_env || true
+                    fi
                 fi
                 echo ""
                 echo -n "Press Enter to continue..."

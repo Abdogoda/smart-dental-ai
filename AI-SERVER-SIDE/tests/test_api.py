@@ -62,6 +62,9 @@ def print_fail(msg=""):
 def print_info(msg):
     print(f"  {Colors.BLUE}ℹ{Colors.NC} {msg}")
 
+def print_warning(msg):
+    print(f"  {Colors.YELLOW}⚠{Colors.NC} {msg}")
+
 def print_error(msg):
     print(f"  {Colors.RED}✗{Colors.NC} {msg}")
 
@@ -387,6 +390,9 @@ def test_diagnose_batch_empty():
     except Exception as e:
         print_fail(str(e))
         return False
+
+def test_chat_endpoint():
+    """Test POST /chat endpoint"""
     """Test POST /chat endpoint"""
     print_test("POST /chat with valid question")
     try:

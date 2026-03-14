@@ -54,7 +54,7 @@ uploads/
 *.webp
 
 # Test images
-tests/images/*
+tests/output/*
 
 # OS
 .DS_Store
