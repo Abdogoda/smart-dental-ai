@@ -143,6 +143,25 @@ run_server() {
     npm run dev
 }
 
+run_tests() {
+    print_header "RUNNING TESTS"
+
+    check_command node || return 1
+    check_command npm || return 1
+
+    if [ ! -f "package.json" ]; then
+        print_error "package.json not found"
+        return 1
+    fi
+
+    if [ -d "coverage" ]; then
+        rm -rf coverage
+    fi
+
+    print_info "Running test suite..."
+    npm test -- --coverage=false
+}
+
 show_status() {
     print_header "SYSTEM STATUS"
     check_node || return 1
@@ -196,9 +215,10 @@ show_main_menu() {
     echo "  1) Setup"
     echo "  2) System Status"
     echo "  3) Run Server"
-    echo "  4) Exit"
+    echo "  4) Run Tests"
+    echo "  5) Exit"
     echo ""
-    echo -n "  Choose option [1-4]: "
+    echo -n "  Choose option [1-5]: "
 }
 
 main() {
@@ -264,6 +284,13 @@ main() {
                 ;;
 
             4)
+                run_tests || true
+                echo ""
+                echo -n "Press Enter to continue..."
+                read -r
+                ;;
+
+            5)
                 print_info "Exiting..."
                 exit 0
                 ;;
@@ -289,6 +316,9 @@ else
         run)
             run_server
             ;;
+        test)
+            run_tests
+            ;;
         help|--help|-h)
             echo "Smart Dental AI Backend Setup & Launcher"
             echo ""
@@ -299,6 +329,7 @@ else
             echo "  setup         Run backend setup"
             echo "  status        Show system status"
             echo "  run           Start the backend server"
+            echo "  test          Run backend tests"
             echo "  help          Show this help"
             ;;
         *)

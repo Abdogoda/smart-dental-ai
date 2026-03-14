@@ -111,6 +111,7 @@ Menu options:
 - Setup
 - System Status
 - Run Server
+- Run Tests
 - Exit
 
 ### Run direct commands
@@ -124,6 +125,9 @@ bash setup.sh status
 
 # Start backend server (development mode)
 bash setup.sh run
+
+# Run backend tests
+bash setup.sh test
 
 # Help
 bash setup.sh --help
