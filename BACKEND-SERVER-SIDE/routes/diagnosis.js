@@ -10,7 +10,7 @@ const router = express.Router();
 // POST /api/diagnosis  — single image diagnosis
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/', authMiddleware, diagnosisService.diagnosisUpload.single('image'), asyncHandler(async (req, res) => {
-  const result = await diagnosisService.runSingleDiagnosis(req.user.id, req.file);
+  const result = await diagnosisService.runSingleDiagnosis(req.patient.id, req.file);
   res.status(201).json(result);
 }));
 
@@ -18,23 +18,23 @@ router.post('/', authMiddleware, diagnosisService.diagnosisUpload.single('image'
 // POST /api/diagnosis/batch  — up to 10 images at once
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/batch', authMiddleware, diagnosisService.diagnosisUpload.array('images', 10), asyncHandler(async (req, res) => {
-  const result = await diagnosisService.runBatchDiagnosis(req.user.id, req.files);
+  const result = await diagnosisService.runBatchDiagnosis(req.patient.id, req.files);
   res.status(201).json(result);
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/diagnosis/history  — all diagnoses for the logged-in user
+// GET /api/diagnosis/history  — all diagnoses for the logged-in patient
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/history', authMiddleware, asyncHandler(async (req, res) => {
-  const result = await diagnosisService.getHistory(req.user.id);
+  const result = await diagnosisService.getHistory(req.patient.id);
   res.json(result);
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/diagnosis/:id  — single diagnosis by ID for the logged-in user
+// GET /api/diagnosis/:id  — single diagnosis by ID for the logged-in patient
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/:id', authMiddleware, asyncHandler(async (req, res) => {
-  const result = await diagnosisService.getDiagnosisById(req.user.id, req.params.id);
+  const result = await diagnosisService.getDiagnosisById(req.patient.id, req.params.id);
   res.json(result);
 }));
 

@@ -11,14 +11,14 @@ const RESPONSE_STYLE_RULE = [
   'STRICT INSTRUCTIONS (follow exactly):',
   '- You are a dental assistant in an ongoing conversation.',
   '- The patient ALREADY KNOWS their diagnosis. Do NOT restate, summarize, or reference it unless they explicitly ask.',
-  '- Answer ONLY what the user is asking in their latest message.',
-  '- If the user sends a short social message (e.g. "ok", "thanks", "great"), reply briefly and politely — nothing medical.',
+  '- Answer ONLY what the patient is asking in their latest message.',
+  '- If the patient sends a short social message (e.g. "ok", "thanks", "great"), reply briefly and politely — nothing medical.',
   '- Keep answers concise and conversational.',
 ].join('\n');
 
-const requireUser = (user_id) => {
-  if (!user_id) {
-    throw new ServiceError('Authenticated user is required', 401);
+const requirePatient = (patient_id) => {
+  if (!patient_id) {
+    throw new ServiceError('Authenticated patient is required', 401);
   }
 };
 
@@ -39,10 +39,10 @@ const formatDiagnosisContext = (diagnosis) => {
   }
 
   if (typeof findings === 'string') {
-    return `[BACKGROUND ONLY — do not mention this unless the user asks]:\n${findings}`;
+    return `[BACKGROUND ONLY — do not mention this unless the patient asks]:\n${findings}`;
   }
 
-  return `[BACKGROUND ONLY — do not mention this unless the user asks]:\n${JSON.stringify(findings, null, 2)}`;
+  return `[BACKGROUND ONLY — do not mention this unless the patient asks]:\n${JSON.stringify(findings, null, 2)}`;
 };
 
 const formatHistoryContext = (messages = []) => {
@@ -52,7 +52,7 @@ const formatHistoryContext = (messages = []) => {
 
   const historyLines = messages
     .slice(-12)
-    .map((item) => `user: ${item.question}\nassistant: ${item.answer}`)
+    .map((item) => `patient: ${item.question}\nassistant: ${item.answer}`)
     .join('\n');
 
   return `Conversation history:\n${historyLines}`;
@@ -70,12 +70,12 @@ const normalizeAnswer = (data) => {
   return JSON.stringify(data);
 };
 
-const askQuestion = async ({ question, context, user_id, diagnosis_id, session_id }) => {
+const askQuestion = async ({ question, context, patient_id, diagnosis_id, session_id }) => {
   if (!question) {
     throw new ServiceError('question field is required', 400);
   }
 
-  requireUser(user_id);
+  requirePatient(patient_id);
   validateObjectId(session_id, 'session_id');
   validateObjectId(diagnosis_id, 'diagnosis_id');
 
@@ -83,10 +83,10 @@ const askQuestion = async ({ question, context, user_id, diagnosis_id, session_i
   let effectiveDiagnosisId = diagnosis_id || null;
 
   if (session_id) {
-    session = await ChatSession.findOne({ _id: session_id, user_id });
+    session = await ChatSession.findOne({ _id: session_id, patient_id });
 
     if (!session) {
-      throw new ServiceError('Chat session not found for this user', 404);
+      throw new ServiceError('Chat session not found for this patient', 404);
     }
 
     if (effectiveDiagnosisId && String(session.diagnosis_id || '') !== String(effectiveDiagnosisId)) {
@@ -101,9 +101,9 @@ const askQuestion = async ({ question, context, user_id, diagnosis_id, session_i
 
   let diagnosis = null;
   if (effectiveDiagnosisId) {
-    diagnosis = await Diagnosis.findOne({ _id: effectiveDiagnosisId, userId: user_id });
+    diagnosis = await Diagnosis.findOne({ _id: effectiveDiagnosisId, patientId: patient_id });
     if (!diagnosis) {
-      throw new ServiceError('Diagnosis not found for this user', 404);
+      throw new ServiceError('Diagnosis not found for this patient', 404);
     }
   }
 
@@ -115,9 +115,9 @@ const askQuestion = async ({ question, context, user_id, diagnosis_id, session_i
     contextParts.push(diagnosisContext);
   }
 
-  const userContext = typeof context === 'string' ? context.trim() : '';
-  if (userContext) {
-    contextParts.push(`User-provided context:\n${userContext}`);
+  const patientContext = typeof context === 'string' ? context.trim() : '';
+  if (patientContext) {
+    contextParts.push(`Patient-provided context:\n${patientContext}`);
   }
 
   const historyContext = formatHistoryContext(session?.message || []);
@@ -139,7 +139,7 @@ const askQuestion = async ({ question, context, user_id, diagnosis_id, session_i
 
     if (!session) {
       session = await ChatSession.create({
-        user_id,
+        patient_id,
         diagnosis_id: effectiveDiagnosisId,
       });
     }
@@ -164,10 +164,10 @@ const askQuestion = async ({ question, context, user_id, diagnosis_id, session_i
   }
 };
 
-const getAllSessions = async (user_id) => {
-  requireUser(user_id);
+const getAllSessions = async (patient_id) => {
+  requirePatient(patient_id);
 
-  const sessions = await ChatSession.find({ user_id })
+  const sessions = await ChatSession.find({ patient_id })
     .sort({ last_active: -1 })
     .lean();
 
@@ -177,8 +177,8 @@ const getAllSessions = async (user_id) => {
   };
 };
 
-const getSessionById = async ({ user_id, session_id }) => {
-  requireUser(user_id);
+const getSessionById = async ({ patient_id, session_id }) => {
+  requirePatient(patient_id);
 
   if (!session_id) {
     throw new ServiceError('session_id is required', 400);
@@ -186,9 +186,9 @@ const getSessionById = async ({ user_id, session_id }) => {
 
   validateObjectId(session_id, 'session_id');
 
-  const session = await ChatSession.findOne({ _id: session_id, user_id }).lean();
+  const session = await ChatSession.findOne({ _id: session_id, patient_id }).lean();
   if (!session) {
-    throw new ServiceError('Chat session not found for this user', 404);
+    throw new ServiceError('Chat session not found for this patient', 404);
   }
 
   return { session };

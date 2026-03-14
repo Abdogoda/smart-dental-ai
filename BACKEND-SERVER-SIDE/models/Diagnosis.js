@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const diagnosisSchema = new mongoose.Schema(
   {
-    // The user who requested the diagnosis
-    userId: {
+    // The patient who requested the diagnosis
+    patientId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Patient',
       required: true,
     },
 

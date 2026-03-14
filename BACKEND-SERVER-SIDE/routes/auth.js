@@ -27,7 +27,7 @@ router.post('/login', asyncHandler(async (req, res) => {
 // GET /api/auth/profile  — view own profile
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/profile', authMiddleware, asyncHandler(async (req, res) => {
-  const result = await authService.getProfile(req, req.user.id);
+  const result = await authService.getProfile(req, req.patient.id);
   res.json(result);
 }));
 
@@ -35,7 +35,7 @@ router.get('/profile', authMiddleware, asyncHandler(async (req, res) => {
 // PUT /api/auth/profile  — update own profile
 // ─────────────────────────────────────────────────────────────────────────────
 router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
-  const result = await authService.updateProfile(req, req.user.id, req.body);
+  const result = await authService.updateProfile(req, req.patient.id, req.body);
   res.json(result);
 }));
 
@@ -43,7 +43,7 @@ router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
 // PUT /api/auth/change-password  — change password
 // ─────────────────────────────────────────────────────────────────────────────
 router.put('/change-password', authMiddleware, asyncHandler(async (req, res) => {
-  const result = await authService.changePassword(req.user.id, req.body);
+  const result = await authService.changePassword(req.patient.id, req.body);
   res.json(result);
 }));
 
@@ -51,7 +51,7 @@ router.put('/change-password', authMiddleware, asyncHandler(async (req, res) => 
 // POST /api/auth/profile/image  — upload or replace own profile image
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/profile/image', authMiddleware, authService.profileImageUpload.single('image'), asyncHandler(async (req, res) => {
-  const result = await authService.uploadProfileImage(req, req.user.id, req.file);
+  const result = await authService.uploadProfileImage(req, req.patient.id, req.file);
   res.json(result);
 }));
 
@@ -59,7 +59,7 @@ router.post('/profile/image', authMiddleware, authService.profileImageUpload.sin
 // GET /api/auth/profile/image  — download own profile image
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/profile/image', authMiddleware, asyncHandler(async (req, res) => {
-  const imagePath = await authService.getProfileImageDownloadPath(req.user.id);
+  const imagePath = await authService.getProfileImageDownloadPath(req.patient.id);
   return res.download(imagePath);
 }));
 

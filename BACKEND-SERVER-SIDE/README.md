@@ -13,7 +13,7 @@ BACKEND-SERVER-SIDE/
 |-- models/
 |   |-- ChatSession.js
 |   |-- Diagnosis.js
-|   `-- User.js
+|   `-- Patient.js
 |-- routes/
 |   |-- auth.js
 |   |-- chat.js

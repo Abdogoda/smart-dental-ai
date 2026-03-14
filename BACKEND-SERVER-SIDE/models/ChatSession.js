@@ -31,9 +31,9 @@ const chatSessionSchema = new mongoose.Schema(
       default: Date.now,
       index: true,
     },
-    user_id: {
+    patient_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Patient',
       required: true,
       index: true,
     },
@@ -50,6 +50,6 @@ const chatSessionSchema = new mongoose.Schema(
   }
 );
 
-chatSessionSchema.index({ user_id: 1, last_active: -1 });
+chatSessionSchema.index({ patient_id: 1, last_active: -1 });
 
 module.exports = mongoose.model('ChatSession', chatSessionSchema);

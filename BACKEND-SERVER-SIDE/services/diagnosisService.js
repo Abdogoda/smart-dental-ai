@@ -242,12 +242,12 @@ const diagnosisUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-const buildDiagnosisFromAi = (userId, file, aiResult) => {
+const buildDiagnosisFromAi = (patientId, file, aiResult) => {
   const { sanitizedPayload, outputImagePath } = persistAiImages(aiResult, file.filename);
   const inputImagePath = buildStoredPath('input', file.filename);
 
   return new Diagnosis({
-    userId,
+    patientId,
     inputImagePath,
     outputImagePath,
     detectionResults: sanitizedPayload.detectionResults ?? sanitizedPayload,
@@ -285,7 +285,7 @@ const normalizeBatchAiResults = (rawBatchResult, files) => {
   return files.map((_, i) => (i === 0 ? rawBatchResult : {}));
 };
 
-const runSingleDiagnosis = async (userId, file) => {
+const runSingleDiagnosis = async (patientId, file) => {
   if (!file) {
     throw new ServiceError('Please upload an image (field name: image)', 400);
   }
@@ -299,7 +299,7 @@ const runSingleDiagnosis = async (userId, file) => {
       timeout: 60_000,
     });
 
-    const diagnosis = buildDiagnosisFromAi(userId, file, aiResponse.data);
+    const diagnosis = buildDiagnosisFromAi(patientId, file, aiResponse.data);
     await diagnosis.save();
 
     return {
@@ -315,7 +315,7 @@ const runSingleDiagnosis = async (userId, file) => {
   }
 };
 
-const runBatchDiagnosis = async (userId, files) => {
+const runBatchDiagnosis = async (patientId, files) => {
   if (!files || files.length === 0) {
     throw new ServiceError('Please upload at least one image (field name: images)', 400);
   }
@@ -336,7 +336,7 @@ const runBatchDiagnosis = async (userId, files) => {
     const savedDiagnoses = await Promise.all(
       files.map((file, i) => {
         const aiResult = aiResults[i] ?? {};
-        return buildDiagnosisFromAi(userId, file, aiResult).save();
+        return buildDiagnosisFromAi(patientId, file, aiResult).save();
       })
     );
 
@@ -354,8 +354,8 @@ const runBatchDiagnosis = async (userId, files) => {
   }
 };
 
-const getDiagnosisById = async (userId, diagnosisId) => {
-  const diagnosis = await Diagnosis.findOne({ _id: diagnosisId, userId });
+const getDiagnosisById = async (patientId, diagnosisId) => {
+  const diagnosis = await Diagnosis.findOne({ _id: diagnosisId, patientId });
   if (!diagnosis) {
     throw new ServiceError('Diagnosis not found', 404);
   }
@@ -363,8 +363,8 @@ const getDiagnosisById = async (userId, diagnosisId) => {
   return { diagnosis: serializeDiagnosis(diagnosis) };
 };
 
-const getHistory = async (userId) => {
-  const diagnoses = await Diagnosis.find({ userId }).sort({ createdAt: -1 });
+const getHistory = async (patientId) => {
+  const diagnoses = await Diagnosis.find({ patientId }).sort({ createdAt: -1 });
 
   return {
     count: diagnoses.length,
