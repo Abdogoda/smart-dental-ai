@@ -6,14 +6,6 @@ const Diagnosis = require('../models/Diagnosis');
 const ServiceError = require('../utils/ServiceError');
 
 const AI_SERVER = process.env.AI_SERVER_URL || 'http://localhost:8000';
-const RESPONSE_STYLE_RULE = [
-  'STRICT INSTRUCTIONS (follow exactly):',
-  '- You are a dental assistant in an ongoing conversation.',
-  '- The patient ALREADY KNOWS their diagnosis. Do NOT restate, summarize, or reference it unless they explicitly ask.',
-  '- Answer ONLY what the patient is asking in their latest message.',
-  '- If the patient sends a short social message (e.g. "ok", "thanks", "great"), reply briefly and politely — nothing medical.',
-  '- Keep answers concise and conversational.',
-].join('\n');
 
 const requirePatient = (patient_id) => {
   if (!patient_id) {
@@ -121,20 +113,9 @@ const askQuestion = async ({ question, patient_id, diagnosis_id }) => {
   }
 
   const sessionMessages = extractSessionMessages(session);
-  const contextParts = [];
-  contextParts.push(RESPONSE_STYLE_RULE);
-
   const diagnosisContext = formatDiagnosisContext(diagnosis);
-  if (diagnosisContext) {
-    contextParts.push(diagnosisContext);
-  }
-
   const historyContext = formatHistoryContext(sessionMessages);
-  if (historyContext) {
-    contextParts.push(historyContext);
-  }
-
-  const combinedContext = contextParts.join('\n\n');
+  const combinedContext = [diagnosisContext, historyContext].filter(Boolean).join('\n\n');
 
   try {
     const aiResponse = await axios.post(
