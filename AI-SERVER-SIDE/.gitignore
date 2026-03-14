@@ -48,13 +48,9 @@ logs/
 
 # Uploaded images (temp)
 uploads/
-*.jpg
-*.jpeg
-*.png
-*.webp
 
 # Test images
-tests/images/*
+tests/output/*
 
 # OS
 .DS_Store
