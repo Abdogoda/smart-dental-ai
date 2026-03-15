@@ -112,7 +112,7 @@ Swagger docs: `http://127.0.0.1:8000/docs`
 
 The Postman collection is located at:
 
-../SMART-DENTAL-AI.postman_collection
+[../SMART-DENTAL-AI.postman_collection](../SMART-DENTAL-AI.postman_collection)
 
 It contains all request types with ready-to-use examples, including:
 
@@ -125,7 +125,7 @@ It contains all request types with ready-to-use examples, including:
 How to use:
 
 1. Open Postman -> Import.
-2. Select file ../SMART-DENTAL-AI.postman_collection.
+2. Select file [../SMART-DENTAL-AI.postman_collection](../SMART-DENTAL-AI.postman_collection).
 3. Start the API server (`./setup.sh` -> option 4, or `python run.py`).
 4. Run requests from the collection examples.
 
