@@ -25,7 +25,6 @@ AI-SERVER-SIDE/
 |  `- classification.pth
 |- tests/
 |  |- test_api.py
-|  |- test_grid_visualization.py
 |  |- images/
 |  `- output/
 |- uploads/
@@ -67,11 +66,11 @@ Interactive menu options:
 
 1. Setup (create venv and install dependencies)
 2. System Status (checks Python, venv, deps, models, .env)
-3. Test Imports
-4. Test API (requires server running)
-5. Test Grid (requires server running)
-6. Run Server
-7. Exit
+3. Test API (requires server running)
+4. Run Server
+5. Exit
+
+Note: Setup will create `.env` from `.env.example` automatically if `.env` is missing.
 
 Non-interactive commands:
 
@@ -127,7 +126,7 @@ How to use:
 
 1. Open Postman -> Import.
 2. Select file `../smart-dental-ai.json`.
-3. Start the API server (`./setup.sh` -> option 6, or `python run.py`).
+3. Start the API server (`./setup.sh` -> option 4, or `python run.py`).
 4. Run requests from the collection examples.
 
 ## Quick cURL Examples
@@ -164,14 +163,12 @@ curl -X POST "http://127.0.0.1:8000/chat" \
 
 Run from launcher:
 
-- API tests: `./setup.sh` -> option 4
-- Grid visualization test: `./setup.sh` -> option 5
+- API tests: `./setup.sh` -> option 3
 
 Or directly:
 
 ```bash
 python tests/test_api.py
-python tests/test_grid_visualization.py
 ```
 
 ## Version

@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
-# Comprehensive setup and launcher for Dental AI Backend
-# Works on Windows (Git Bash/MINGW64), macOS, and Linux
+# Simplified setup and launcher for Dental AI Backend
+# Works on Windows (Git Bash), macOS, and Linux
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Setup variables
 PYTHON_CMD=""
-PIP_CMD=""
 VENV_PYTHON=""
-
-# ==============================================================================
-# UTILITY FUNCTIONS
-# ==============================================================================
 
 print_header() {
     echo ""
@@ -26,49 +19,31 @@ print_header() {
 }
 
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
 }
 
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
-# ==============================================================================
-# ENVIRONMENT SETUP
-# ==============================================================================
-
 setup_python_commands() {
-    # Determine Python command
-    if command -v python &> /dev/null; then
+    if command -v python >/dev/null 2>&1; then
         PYTHON_CMD="python"
-    elif command -v python3 &> /dev/null; then
+    elif command -v python3 >/dev/null 2>&1; then
         PYTHON_CMD="python3"
     else
         print_error "Python not found (need 3.9+)"
         return 1
     fi
-    
-    # Determine pip path
-    if [ -f "venv/Scripts/pip.exe" ]; then
-        PIP_CMD="venv/Scripts/pip.exe"
-    elif [ -f "venv/Scripts/pip" ]; then
-        PIP_CMD="venv/Scripts/pip"
-    elif [ -f "venv/bin/pip" ]; then
-        PIP_CMD="venv/bin/pip"
-    else
-        print_error "pip not found in venv"
-        return 1
-    fi
-    
-    # Determine venv python
+
     if [ -f "venv/Scripts/python.exe" ]; then
         VENV_PYTHON="venv/Scripts/python.exe"
     elif [ -f "venv/Scripts/python" ]; then
@@ -76,88 +51,30 @@ setup_python_commands() {
     elif [ -f "venv/bin/python" ]; then
         VENV_PYTHON="venv/bin/python"
     else
-        print_error "Python not found in venv"
-        return 1
+        VENV_PYTHON=""
     fi
-    
+
     return 0
 }
 
-# ==============================================================================
-# HEALTH CHECKS
-# ==============================================================================
-
 check_python() {
-    if ! command -v $PYTHON_CMD &> /dev/null; then
-        print_error "Python not found"
+    if ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
+        print_error "Python command is not available"
         return 1
     fi
-    VERSION=$($PYTHON_CMD --version 2>&1)
-    print_success "Python: $VERSION"
+    local version
+    version=$($PYTHON_CMD --version 2>&1)
+    print_success "Python: $version"
     return 0
 }
 
 check_venv() {
-    if [ ! -f "venv/pyvenv.cfg" ] && [ ! -f "venv/Scripts/python.exe" ] && [ ! -f "venv/bin/python" ]; then
+    if [ -z "$VENV_PYTHON" ] || [ ! -f "$VENV_PYTHON" ]; then
         print_warning "Virtual environment not found"
         return 1
     fi
     print_success "Virtual environment exists"
     return 0
-}
-
-check_models() {
-    local yolo_missing=false
-    local resnet_missing=false
-    
-    if [ ! -f "models/detection.pt" ]; then
-        yolo_missing=true
-    fi
-    
-    if [ ! -f "models/classification.pth" ]; then
-        resnet_missing=true
-    fi
-    
-    if [ "$yolo_missing" = true ] || [ "$resnet_missing" = true ]; then
-        print_error "Model files missing:"
-        if [ "$yolo_missing" = true ]; then
-            echo -e "         ${RED}✗${NC} models/detection.pt (YOLOv8)"
-        fi
-        if [ "$resnet_missing" = true ]; then
-            echo -e "         ${RED}✗${NC} models/classification.pth (ResNet50)"
-        fi
-        return 1
-    fi
-    
-    print_success "Model files present"
-    return 0
-}
-
-check_env() {
-    if [ ! -f ".env" ]; then
-        print_error ".env file not found"
-        return 1
-    fi
-    
-    GEMINI_KEY=$(grep "^GEMINI_API_KEY=" .env | cut -d'=' -f2)
-    
-    if [ -z "$GEMINI_KEY" ] || [ "$GEMINI_KEY" = "your_gemini_api_key_here" ]; then
-        print_warning ".env: GEMINI_API_KEY not configured"
-        return 1
-    fi
-    
-    print_success ".env file configured"
-    return 0
-}
-
-check_dependencies() {
-    if $VENV_PYTHON -c "import fastapi, ultralytics, torch, google.generativeai" 2>/dev/null; then
-        print_success "Dependencies installed"
-        return 0
-    else
-        print_error "Some dependencies missing"
-        return 1
-    fi
 }
 
 check_requirements() {
@@ -169,287 +86,232 @@ check_requirements() {
     return 0
 }
 
-# ==============================================================================
-# ACTIONS
-# ==============================================================================
-
-action_create_venv() {
-    print_info "Creating virtual environment..."
-    if $PYTHON_CMD -m venv venv; then
-        print_success "Virtual environment created"
-        
-        # Re-setup commands after creating venv
-        if setup_python_commands; then
-            return 0
-        fi
-    else
-        print_error "Failed to create virtual environment"
+check_dependencies() {
+    if [ -z "$VENV_PYTHON" ] || [ ! -f "$VENV_PYTHON" ]; then
+        print_warning "Cannot check dependencies without venv"
         return 1
     fi
+
+    if $VENV_PYTHON -c "import fastapi, ultralytics, torch, google.generativeai" >/dev/null 2>&1; then
+        print_success "Dependencies installed"
+        return 0
+    fi
+
+    print_error "Some dependencies are missing"
     return 1
 }
 
-action_install_deps() {
-    print_info "Installing dependencies (this may take a few minutes)..."
-    echo ""
-    
-    if [ ! -f "$PIP_CMD" ]; then
-        print_error "pip not found"
+check_models() {
+    local missing=false
+
+    if [ ! -f "models/detection.pt" ]; then
+        print_error "Missing models/detection.pt"
+        missing=true
+    fi
+    if [ ! -f "models/classification.pth" ]; then
+        print_error "Missing models/classification.pth"
+        missing=true
+    fi
+
+    if [ "$missing" = true ]; then
         return 1
     fi
-    
-    # Show what packages will be installed
-    print_info "Packages to install:"
-    while IFS= read -r line; do
-        if [[ ! $line =~ ^# ]] && [ ! -z "$line" ]; then
-            echo "     • $line"
+
+    print_success "Model files present"
+    return 0
+}
+
+check_env() {
+    if [ ! -f ".env" ]; then
+        print_error ".env file not found"
+        return 1
+    fi
+
+    local gemini_key
+    gemini_key=$(grep "^GEMINI_API_KEY=" .env | cut -d'=' -f2)
+    if [ -z "$gemini_key" ] || [ "$gemini_key" = "your_gemini_api_key_here" ]; then
+        print_warning "GEMINI_API_KEY is not configured"
+        return 1
+    fi
+
+    print_success ".env file configured"
+    return 0
+}
+
+check_server_running() {
+    if [ -z "$VENV_PYTHON" ] || [ ! -f "$VENV_PYTHON" ]; then
+        return 1
+    fi
+
+    if $VENV_PYTHON -c "import urllib.request,sys; urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3); sys.exit(0)" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    return 1
+}
+
+action_create_venv() {
+    print_info "Creating virtual environment..."
+    if ! $PYTHON_CMD -m venv venv; then
+        print_error "Failed to create virtual environment"
+        return 1
+    fi
+
+    setup_python_commands
+    print_success "Virtual environment created"
+    return 0
+}
+
+action_install_deps() {
+    if [ -z "$VENV_PYTHON" ] || [ ! -f "$VENV_PYTHON" ]; then
+        print_error "Virtual environment Python not found"
+        return 1
+    fi
+
+    print_info "Installing dependencies..."
+
+    if ! $VENV_PYTHON -m pip --version >/dev/null 2>&1; then
+        print_warning "pip missing in venv, running ensurepip..."
+        if ! $VENV_PYTHON -m ensurepip --upgrade; then
+            print_error "Failed to bootstrap pip in venv"
+            return 1
         fi
-    done < requirements.txt
-    
-    echo ""
-    print_info "Installing packages..."
-    echo ""
-    
-    # Install with progress output
-    if $PIP_CMD install -r requirements.txt --progress-bar on -v 2>&1 | while IFS= read -r line; do
-        # Show progress lines
-        if [[ $line =~ "Collecting" ]]; then
-            echo -e "  ${BLUE}○${NC} ${line#*Collecting }"
-        elif [[ $line =~ "Downloading" ]]; then
-            echo -e "  ${YELLOW}⬇${NC} ${line#*Downloading }"
-        elif [[ $line =~ "Installing collected" ]]; then
-            echo -e "  ${GREEN}✓${NC} ${line}"
-        elif [[ $line =~ "Successfully installed" ]]; then
-            echo -e "  ${GREEN}✓${NC} ${line}"
-        elif [[ $line =~ "Requirement already satisfied" ]]; then
-            pkg=$(echo "$line" | grep -oP "(?<=Requirement already satisfied: )[^ ]+" || true)
-            [ ! -z "$pkg" ] && echo -e "  ${GREEN}✓${NC} Already installed: $pkg"
-        fi
-    done; then
-        echo ""
+    fi
+
+    if $VENV_PYTHON -m pip install -r requirements.txt; then
         print_success "Dependencies installed"
         return 0
-    else
-        echo ""
-        print_error "Failed to install dependencies"
-        return 1
     fi
+
+    print_error "Failed to install dependencies"
+    return 1
 }
 
-action_test_imports() {
-    print_info "Testing package imports..."
-    
-    if $VENV_PYTHON -c "
-import fastapi
-import uvicorn
-import torch
-import ultralytics
-from PIL import Image
-import google.generativeai
-from pydantic import BaseModel
-print('  All imports successful')
-"; then
-        print_success "All imports working"
+action_ensure_env() {
+    if [ -f ".env" ]; then
+        print_success ".env file exists"
         return 0
-    else
-        print_error "Import test failed"
+    fi
+
+    if [ ! -f ".env.example" ]; then
+        print_error ".env is missing and .env.example was not found"
         return 1
     fi
-}
 
-action_run_server() {
-    print_info "Starting FastAPI server..."
-    echo ""
-    print_warning "Press Ctrl+C to stop the server"
-    echo ""
-    
-    $VENV_PYTHON run.py
+    if cp .env.example .env; then
+        print_success "Created .env from .env.example"
+        return 0
+    fi
+
+    print_error "Failed to create .env from .env.example"
+    return 1
 }
 
 action_run_api_tests() {
     print_info "Running API tests (server must be running)..."
-    echo ""
-    
     if $VENV_PYTHON tests/test_api.py; then
-        print_success "All tests completed"
+        print_success "API tests completed"
         return 0
-    else
-        print_error "Some tests failed"
-        return 1
     fi
+    print_error "API tests failed"
+    return 1
 }
 
-action_run_grid_tests() {
-    print_info "Running grid visualization test (server must be running)..."
-    echo ""
-    
-    if $VENV_PYTHON tests/test_grid_visualization.py; then
-        print_success "Grid visualization test completed"
-        return 0
-    else
-        print_error "Grid visualization test failed"
-        return 1
-    fi
+action_run_server() {
+    print_info "Starting FastAPI server..."
+    print_warning "Press Ctrl+C to stop the server"
+    $VENV_PYTHON run.py
 }
-
-# ==============================================================================
-# MENUS
-# ==============================================================================
 
 show_status() {
-    print_header "🏥 SYSTEM STATUS"
-    
+    print_header "SYSTEM STATUS"
     check_python || true
     check_venv || true
-    
+    check_requirements || true
     if check_venv; then
         check_dependencies || true
     fi
-    
-    check_requirements || true
     check_models || true
     check_env || true
-    
     echo ""
 }
 
 show_main_menu() {
-    print_header "🚀 DENTAL AI BACKEND LAUNCHER"
-    
+    print_header "DENTAL AI BACKEND LAUNCHER"
     echo ""
-    echo "  1) 🔧 Setup (Create venv & install dependencies)"
-    echo "  2) 📋 System Status (Check all requirements)"
-    echo "  3) 🧪 Test Imports (Run import tests)"
-    echo "  4) 🧪 Test API (Run comprehensive API endpoint tests)"
-    echo "  5) 🎨 Test Grid (Run grid visualization test with 8 images)"
-    echo "  6) ▶️  Run Server (Start FastAPI backend)"
-    echo "  7) ❌ Exit"
+    echo "  1) Setup (Create venv and install dependencies)"
+    echo "  2) System Status"
+    echo "  3) Test API"
+    echo "  4) Run Server"
+    echo "  5) Exit"
     echo ""
-    echo -n "  Choose option [1-7]: "
+    echo -n "  Choose option [1-5]: "
 }
 
-# ==============================================================================
-# MAIN LOGIC
-# ==============================================================================
-
 main() {
-    # Initialize
     if ! setup_python_commands; then
-        print_error "Failed to setup Python commands"
+        print_error "Failed to configure Python commands"
         exit 1
     fi
-    
-    # Main loop
+
     while true; do
         show_main_menu
         read -r choice
-        
+
         case $choice in
             1)
-                print_header "🔧 SETUP"
-                
+                print_header "SETUP"
+                check_requirements || continue
+                action_ensure_env || continue
                 if ! check_venv; then
                     action_create_venv || continue
                 fi
-                
                 action_install_deps || continue
-                action_test_imports || continue
-                
-                print_success "Setup complete!"
+                print_success "Setup complete"
                 echo ""
                 ;;
-            
             2)
                 show_status
                 echo -n "Press Enter to continue..."
                 read -r
                 ;;
-            
             3)
-                print_header "🧪 TESTING IMPORTS"
-                
+                print_header "TEST API"
                 if ! check_venv; then
-                    print_error "Virtual environment not found. Run Setup first (option 1)"
+                    print_error "Virtual environment not found. Run Setup first (option 1)."
                 else
-                    action_test_imports
+                    if check_server_running; then
+                        action_run_api_tests
+                    else
+                        print_error "Server is not running at http://127.0.0.1:8000"
+                        print_info "Start the server first (option 4), then run Test API again."
+                        print_info "Pre-checking likely blockers for server startup:"
+                        check_models || true
+                        check_env || true
+                    fi
                 fi
-                
                 echo ""
                 echo -n "Press Enter to continue..."
                 read -r
                 ;;
-            
             4)
-                print_header "🧪 TESTING API ENDPOINTS"
-                
+                print_header "RUN SERVER"
+                local ready=true
+
                 if ! check_venv; then
-                    print_error "Virtual environment not found. Run Setup first (option 1)"
-                    echo ""
-                    echo -n "Press Enter to continue..."
-                    read -r
-                else
-                    print_warning "Ensure the server is running in another terminal (option 6)"
-                    echo ""
-                    echo -n "Press Enter to start tests..."
-                    read -r
-                    echo ""
-                    action_run_api_tests
-                    echo ""
-                    echo -n "Press Enter to continue..."
-                    read -r
+                    ready=false
                 fi
-                ;;
-            
-            5)
-                print_header "🎨 TESTING GRID VISUALIZATION"
-                
-                if ! check_venv; then
-                    print_error "Virtual environment not found. Run Setup first (option 1)"
-                    echo ""
-                    echo -n "Press Enter to continue..."
-                    read -r
-                else
-                    print_warning "Ensure the server is running in another terminal (option 6)"
-                    echo ""
-                    echo -n "Press Enter to start grid test..."
-                    read -r
-                    echo ""
-                    action_run_grid_tests
-                    echo ""
-                    echo -n "Press Enter to continue..."
-                    read -r
-                fi
-                ;;
-            
-            6)
-                print_header "▶️  PRE-LAUNCH CHECKS"
-                
-                # Pre-launch checks
-                READY=true
-                
-                if ! check_venv; then
-                    print_error "Virtual environment not found. Run Setup first (option 1)"
-                    READY=false
-                fi
-                
-                if ! check_models; then
-                    print_error "Model files missing. Add them to models/ directory"
-                    READY=false
-                fi
-                
-                if ! check_env; then
-                    print_error "Configure GEMINI_API_KEY in .env file"
-                    READY=false
-                fi
-                
                 if ! check_dependencies; then
-                    print_warning "Dependencies may be missing"
-                    READY=false
+                    ready=false
                 fi
-                
-                if [ "$READY" = true ]; then
-                    print_success "All checks passed!"
-                    echo ""
+                if ! check_models; then
+                    ready=false
+                fi
+                if ! check_env; then
+                    ready=false
+                fi
+
+                if [ "$ready" = true ]; then
                     action_run_server
                 else
                     echo ""
@@ -457,12 +319,10 @@ main() {
                     read -r
                 fi
                 ;;
-            
-            7)
+            5)
                 print_info "Exiting..."
                 exit 0
                 ;;
-            
             *)
                 print_error "Invalid option"
                 sleep 1
@@ -471,30 +331,23 @@ main() {
     done
 }
 
-# ==============================================================================
-# ENTRY POINT
-# ==============================================================================
-
 if [ $# -eq 0 ]; then
-    # Interactive mode
     main
 else
-    # Handle command line arguments
     case $1 in
         --status|status)
-            setup_python_commands
+            setup_python_commands || exit 1
             show_status
             ;;
         --help|help|-h)
-            echo "Dental AI Backend Setup & Launcher"
+            echo "Dental AI Backend Setup and Launcher"
             echo ""
             echo "Usage: ./setup.sh [COMMAND]"
             echo ""
             echo "Commands:"
-            echo "  (no args)     Interactive menu"
-            echo "  status        Show system status"
-            echo "  help          Show this help"
-            echo ""
+            echo "  (no args)  Interactive menu"
+            echo "  status     Show system status"
+            echo "  help       Show this help"
             ;;
         *)
             print_error "Unknown command: $1"
