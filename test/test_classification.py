@@ -7,7 +7,7 @@ from PIL import Image
 
 # Configuration
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "models/phase2_best.pth")
+MODEL_PATH = os.path.join(BASE_DIR, "models/classification.pth")
 IMAGE_SIZE = 224
 CLASSES = ["Calculus", "Dental Caries", "Tooth Discoloration", "Caries Gingivitis", "Hypodontia", "Mouth Ulcer"]
 
